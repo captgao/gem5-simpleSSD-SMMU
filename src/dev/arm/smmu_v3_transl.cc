@@ -39,6 +39,8 @@
 
 #include "dev/arm/smmu_v3_transl.hh"
 
+#include <cstdio>
+
 #include "debug/SMMUv3.hh"
 #include "debug/SMMUv3Hazard.hh"
 #include "dev/arm/amba.hh"
@@ -58,7 +60,9 @@ SMMUTranslRequest::fromPacket(PacketPtr pkt, bool ats)
     req.isPrefetch   = false;
     req.isAtsRequest = ats;
     req.pkt          = pkt;
-
+    printf("Request addr=%lx size = %d. StreamID = %d, SubstreamID = %d)\n",
+        req.addr, req.size, req.sid, req.ssid);
+    std::cout << "isWrite " << req.isWrite << std::endl;
     return req;
 }
 

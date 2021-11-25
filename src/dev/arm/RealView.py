@@ -1057,9 +1057,9 @@ Interrupts:
         device.pci_bus = 0
         device.pci_dev = self._num_pci_dev
         device.pci_func = 0
-        self._attach_device(device, *args, **kwargs)
+        #self._attach_device(device, *args, **kwargs)
 
-    def attachSmmu(self, devices, bus):
+    def attachSmmu(self, devices, bus, iobus):
         """
         Instantiate a single SMMU and attach a group of client devices to it.
         The devices' dma port is wired to the SMMU and the SMMU's dma port
@@ -1081,7 +1081,10 @@ Interrupts:
 
         dma_ports = []
         for dev in devices:
-            self._attach_device(dev, bus, dma_ports)
+            print("smmu attach")
+            if hasattr(dev, "pio"):
+                print("pio")
+                dev.pio = iobus.master
             self.smmu.connect(dev, bus)
 
     def setupBootLoader(self, cur_sys, boot_loader):

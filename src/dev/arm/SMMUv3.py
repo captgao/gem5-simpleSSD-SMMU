@@ -199,8 +199,10 @@ class SMMUv3(ClockedObject):
         slave_interface = SMMUv3SlaveInterface()
 
         if hasattr(device, "master"):
+            print("master")
             slave_interface.slave = device.master
         elif hasattr(device, "dma"):
+            print("dma")
             slave_interface.slave = device.dma
         else:
             print("Unable to attach SMMUv3\n")

@@ -413,7 +413,8 @@ def makeArmSystem(mem_mode, machine_type, simplessd, num_cpus=1, mdesc=None,
         self.realview.attachPciDevice(
             dev, self.iobus,
             dma_ports=self._dma_ports if ruby else None)
-
+    print("attach Smmu to IObus")
+    self.realview.attachSmmu(pci_devices, self.iobus, self.iobus)
     self.intrctrl = IntrControl()
     self.terminal = Terminal()
     self.vncserver = VncServer()
