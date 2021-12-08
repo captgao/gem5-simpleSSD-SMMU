@@ -19,6 +19,10 @@
 
 #include "dev/storage/nvme_interface.hh"
 
+#include <execinfo.h>
+
+#include <cstdio>
+
 #include "cpu/intr_control.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
@@ -271,6 +275,7 @@ Tick NVMeInterface::writeConfig(PacketPtr pkt) {
 }
 
 Tick NVMeInterface::read(PacketPtr pkt) {
+  std::cout << "NVMeInterface::read"<<std::endl;
   if (!pController) {
     pkt->makeAtomicResponse();
 
@@ -313,6 +318,10 @@ Tick NVMeInterface::read(PacketPtr pkt) {
 }
 
 Tick NVMeInterface::write(PacketPtr pkt) {
+  void *array[1024];
+  printf("NVMeInterface::write %lx\n", pkt->getAddr());
+  //size_t btsize = backtrace(array,1024);
+  //backtrace_symbols_fd(array, btsize, 1);
   if (!pController) {
     pkt->makeAtomicResponse();
 
