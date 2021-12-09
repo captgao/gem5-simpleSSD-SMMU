@@ -103,9 +103,9 @@ class NVMeInterface : public PciDevice,
 
   // Interface <-> Controller
   void dmaRead(uint64_t, uint64_t, uint8_t *, SimpleSSD::DMAFunction &,
-               void * = nullptr) override;
+               void * = nullptr, uint32_t = 0, uint32_t = 0) override;
   void dmaWrite(uint64_t, uint64_t, uint8_t *, SimpleSSD::DMAFunction &,
-                void * = nullptr) override;
+                void * = nullptr, uint32_t = 0, uint32_t = 0) override;
   void updateInterrupt(uint16_t, bool) override;
   void getVendorID(uint16_t &, uint16_t &) override;
 };
