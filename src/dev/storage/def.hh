@@ -48,7 +48,7 @@ typedef struct _DMAEntry {
   SimpleSSD::DMAFunction func;
 
   _DMAEntry(SimpleSSD::DMAFunction &f)
-      : beginAt(0), finishedAt(0), addr(0), size(0), buffer(nullptr),
+      : beginAt(0), finishedAt(0), addr(0), size(0), buffer(nullptr), sid(0), ssid(0),
         context(nullptr), func(f) {}
 } DMAEntry;
 
