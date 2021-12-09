@@ -396,7 +396,7 @@ void NVMeInterface::writeInterrupt(Addr addr, size_t size, uint8_t *data) {
 }
 
 void NVMeInterface::dmaRead(uint64_t addr, uint64_t size, uint8_t *buffer,
-                            SimpleSSD::DMAFunction &func, void *context, uint32_t sid=0, uint32_t ssid=0) {
+                            SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
   if (size == 0) {
     SimpleSSD::warn("nvme_interface: zero-size DMA read request. Ignore.");
 
@@ -457,7 +457,7 @@ void NVMeInterface::submitDMARead() {
 }
 
 void NVMeInterface::dmaWrite(uint64_t addr, uint64_t size, uint8_t *buffer,
-                             SimpleSSD::DMAFunction &func, void *context, uint32_t sid = 0, uint32_t ssid = 0) {
+                             SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
   if (size == 0) {
     SimpleSSD::warn("nvme_interface: zero-size DMA write request. Ignore.");
 
