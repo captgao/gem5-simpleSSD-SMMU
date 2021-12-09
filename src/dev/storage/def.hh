@@ -42,6 +42,8 @@ typedef struct _DMAEntry {
   uint64_t addr;
   uint64_t size;
   uint8_t *buffer;
+  uint32_t sid;
+  uint32_t ssid;
   void *context;
   SimpleSSD::DMAFunction func;
 

@@ -448,7 +448,7 @@ void NVMeInterface::submitDMARead() {
 
   if (iter.buffer) {
     DmaDevice::dmaRead(pciToDma(iter.addr), iter.size, &dmaReadEvent,
-                       iter.buffer);
+                       iter.buffer, iter.sid, iter.ssid);
   }
   else {
     schedule(dmaReadEvent, iter.finishedAt);
@@ -508,7 +508,7 @@ void NVMeInterface::submitDMAWrite() {
 
   if (iter.buffer) {
     DmaDevice::dmaWrite(pciToDma(iter.addr), iter.size, &dmaWriteEvent,
-                        iter.buffer);
+                        iter.buffer, iter.sid, iter.ssid);
   }
   else {
     schedule(dmaWriteEvent, iter.finishedAt);
