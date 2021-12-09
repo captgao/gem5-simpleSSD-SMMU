@@ -83,9 +83,9 @@ class UFSInterface : public DmaDevice,
 
   // Interface <-> Controller
   void dmaRead(uint64_t, uint64_t, uint8_t *, SimpleSSD::DMAFunction &,
-               void * = nullptr) override;
+               void * = nullptr, uint32_t = 0, uint32_t = 0) override;
   void dmaWrite(uint64_t, uint64_t, uint8_t *, SimpleSSD::DMAFunction &,
-                void * = nullptr) override;
+                void * = nullptr, uint32_t = 0, uint32_t = 0) override;
   void generateInterrupt() override;
   void clearInterrupt() override;
 };
