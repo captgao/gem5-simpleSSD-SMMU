@@ -64,8 +64,8 @@ SMMUTranslRequest::fromPacket(PacketPtr pkt, bool ats)
     req.isAtsRequest = ats;
     req.pkt          = pkt;
     printf(
-        "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d)\n",
-        req.addr, req.size, req.sid, req.ssid, req.isWrite);
+        "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d\n",
+        req.addr, req.size, req.ssid, req.isWrite);
     return req;
 }
 
