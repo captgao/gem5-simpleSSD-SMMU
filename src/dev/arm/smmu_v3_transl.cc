@@ -145,9 +145,6 @@ SMMUTranslationProcess::main(Yield &yield)
     // The coroutine starts running as soon as it's created.
     // But we need to wait for request data esp. in atomic mode.
     //std::cout << "SMMUTransl main" << std::endl;
-    void *array[1024];
-    //size_t size = backtrace(array,1024);
-    //backtrace_symbols_fd(array, size, 1);
     SMMUAction a;
     a.type = ACTION_INITIAL_NOP;
     a.pkt = NULL;
