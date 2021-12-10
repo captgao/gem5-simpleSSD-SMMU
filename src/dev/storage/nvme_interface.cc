@@ -398,7 +398,7 @@ void NVMeInterface::writeInterrupt(Addr addr, size_t size, uint8_t *data) {
 void NVMeInterface::dmaRead(uint64_t addr, uint64_t size, uint8_t *buffer,
                             SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
   void *array[1024];
-  printf("NVMeInterface::dmaRead %lx\n", pkt->getAddr());
+  printf("NVMeInterface::dmaRead %lx\n", addr);
   size_t btsize = backtrace(array,1024);
   backtrace_symbols_fd(array, btsize, 1);
   if (size == 0) {
@@ -463,7 +463,7 @@ void NVMeInterface::submitDMARead() {
 void NVMeInterface::dmaWrite(uint64_t addr, uint64_t size, uint8_t *buffer,
                              SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
   void *array[1024];
-  printf("NVMeInterface::dmaRead %lx\n", pkt->getAddr());
+  printf("NVMeInterface::dmaRead %lx\n", addr);
   size_t btsize = backtrace(array,1024);
   backtrace_symbols_fd(array, btsize, 1);
   if (size == 0) {
