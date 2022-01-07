@@ -458,6 +458,7 @@ void NVMeInterface::dmaWrite(uint64_t addr, uint64_t size, uint8_t *buffer,
                              SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
 
   printf("NVMeInterface::dmaWrite %lx\n", addr);
+  printf("ssid%d\n", ssid);
   // void *array[5];
   // size_t btsize = backtrace(array,5);
   // backtrace_symbols_fd(array, btsize, 1);
