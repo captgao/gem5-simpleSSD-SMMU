@@ -48,7 +48,8 @@ enum {
     SMMU_SECURE_SZ = 0x184, // Secure regs are within page0
     SMMU_PAGE_ZERO_SZ = 0x10000,
     SMMU_PAGE_ONE_SZ = 0x10000,
-    SMMU_REG_SIZE = SMMU_PAGE_ONE_SZ + SMMU_PAGE_ZERO_SZ
+    SMMU_PID_SZ = 0x20000,
+    SMMU_REG_SIZE = SMMU_PAGE_ONE_SZ + SMMU_PAGE_ZERO_SZ + SMMU_PID_SZ
 };
 
 enum {
@@ -181,6 +182,8 @@ union SMMURegs
         uint32_t _pad18[6];       // 0x100B0
         uint32_t priq_prod;       // 0x100C8
         uint32_t priq_cons;       // 0x100CC
+        uint32_t _pad19[16332];   // 0x20000
+        uint32_t traffic[32768];
     };
 };
 

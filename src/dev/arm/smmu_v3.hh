@@ -145,7 +145,6 @@ class SMMUv3 : public ClockedObject
     SMMUCommandExecProcess commandExecutor;
 
     const AddrRange regsMap;
-    SMMURegs regs;
 
     bool inSecureBlock(uint32_t offs) const;
 
@@ -167,6 +166,8 @@ class SMMUv3 : public ClockedObject
     const PageTableOps *getPageTableOps(uint8_t trans_granule);
 
   public:
+    SMMURegs regs;
+
     SMMUv3(SMMUv3Params *p);
     virtual ~SMMUv3() {}
 
