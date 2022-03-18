@@ -207,5 +207,6 @@ SMMUProcess::run(PacketPtr pkt)
 {
     assert(coroutine != NULL);
     assert(*coroutine);
+    printf("SMMUProcess::run\n");
     return (*coroutine)(pkt).get();
 }
