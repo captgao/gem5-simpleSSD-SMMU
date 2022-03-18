@@ -207,6 +207,6 @@ SMMUProcess::run(PacketPtr pkt)
 {
     assert(coroutine != NULL);
     assert(*coroutine);
-    printf("SMMUProcess::run\n");
+    printf("SMMUProcess::run %d\n", pkt->req->virtualTime);
     return (*coroutine)(pkt).get();
 }
