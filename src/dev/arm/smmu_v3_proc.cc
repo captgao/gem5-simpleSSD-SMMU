@@ -42,6 +42,7 @@
 #include "dev/arm/smmu_v3.hh"
 #include "sim/system.hh"
 #include <stdio.h>
+#include <execinfo.h>
 
 SMMUProcess::SMMUProcess(const std::string &name, SMMUv3 &_smmu) :
     coroutine(NULL),
