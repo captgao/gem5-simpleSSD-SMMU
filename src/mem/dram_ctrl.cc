@@ -263,6 +263,8 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
+    if(pkt->req->hasSubstreamId())
+        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << std::endl;
     if(pkt->req->virtualTime != 0)
         std::cout << "dram_ctrl.cc: recvAtomic" << pkt->req->virtualTime << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
