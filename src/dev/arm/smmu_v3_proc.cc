@@ -41,6 +41,7 @@
 
 #include "dev/arm/smmu_v3.hh"
 #include "sim/system.hh"
+#include <stdio.h>
 
 SMMUProcess::SMMUProcess(const std::string &name, SMMUv3 &_smmu) :
     coroutine(NULL),
@@ -62,6 +63,7 @@ SMMUProcess::wakeup()
 void
 SMMUProcess::reinit()
 {
+    printf("SMMUProcess:reinit\n");
     delete coroutine;
     coroutine = new Coroutine(
         std::bind(&SMMUProcess::main, this, std::placeholders::_1));
@@ -207,6 +209,9 @@ SMMUProcess::run(PacketPtr pkt)
 {
     assert(coroutine != NULL);
     assert(*coroutine);
+    void *array[10];
+    size_t btsize = backtrace(array,10);
+    backtrace_symbols_fd(array, btsize, 1);
     printf("SMMUProcess::run %d\n", pkt->req->virtualTime);
     return (*coroutine)(pkt).get();
 }

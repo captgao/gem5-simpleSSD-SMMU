@@ -159,7 +159,7 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
     // split into many requests and packets based on the block size,
     // i.e. cache line size
     DmaReqState *reqState = new DmaReqState(event, size, delay);
-
+    printf("DmaPort::dmaACtion sid %d ssid%d\n", sid, ssid);
     // (functionality added for Table Walker statistics)
     // We're only interested in this when there will only be one request.
     // For simplicity, we return the last request, which would also be
