@@ -119,13 +119,8 @@ SMMUTranslationProcess::~SMMUTranslationProcess()
 void
 SMMUTranslationProcess::beginTransaction(const SMMUTranslRequest &req)
 {
-    printf("SMMUTranslRequest::beginTransaction ");
-    printf(
-        "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d\n",
-        req.addr, req.size, req.ssid, req.isWrite);
     smmu.regs.traffic[req.ssid] += req.size / 64;
     request = req;
-
     reinit();
 }
 
