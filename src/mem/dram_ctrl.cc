@@ -588,7 +588,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
-
+    std::cout << "dram_ctrl.cc recvTimingReq: " << pkt->req->virtualTime << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
