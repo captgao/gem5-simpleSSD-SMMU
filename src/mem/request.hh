@@ -61,7 +61,7 @@
 #include "base/types.hh"
 #include "cpu/inst_seq.hh"
 #include "sim/core.hh"
-
+#include <stdio.h>
 /**
  * Special TaskIds that are used for per-context-switch stats dumps
  * and Cache Occupancy. Having too many tasks seems to be a problem
@@ -304,6 +304,7 @@ class Request
 
     void setPhys(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time, VirtualTime _virtualTime)
     {
+        printf("virtual time %d\n", _virtualTime);
         _paddr = paddr;
         _size = size;
         _time = time;
