@@ -302,6 +302,22 @@ class Request
         //translateDelta = 0;
     }
 
+    void setPhys(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time, uint32_t _virtualTime)
+    {
+        _paddr = paddr;
+        _size = size;
+        _time = time;
+        _masterId = mid;
+        virtualTime = _virtualTime;
+        _flags.clear(~STICKY_FLAGS);
+        _flags.set(flags);
+        privateFlags.clear(~STICKY_PRIVATE_FLAGS);
+        privateFlags.set(VALID_PADDR|VALID_SIZE);
+        depth = 0;
+        accessDelta = 0;
+        //translateDelta = 0;
+    }
+
     /**
      * The physical address of the request. Valid only if validPaddr
      * is set.
@@ -388,6 +404,8 @@ class Request
 
   public:
 
+    uint32_t virtualTime;
+
     /**
      * Minimal constructor. No fields are initialized. (Note that
      *  _flags and privateFlags are cleared by Flags default
@@ -420,6 +438,17 @@ class Request
      * These fields are adequate to perform a request.
      */
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid)
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
+          _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
+          _extraData(0), _contextId(0), _pc(0),
+          _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
+          accessDelta(0), depth(0)
+    {
+        setPhys(paddr, size, flags, mid, curTick());
+    }
+
+
+    Request(Addr paddr, unsigned size, Flags flags, MasterID mid, uint32_t virtualTime)
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
