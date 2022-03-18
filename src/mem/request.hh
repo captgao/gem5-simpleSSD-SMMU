@@ -84,7 +84,7 @@ class Request;
 
 typedef std::shared_ptr<Request> RequestPtr;
 typedef uint16_t MasterID;
-
+typedef uint32_t VirtualTime;
 class Request
 {
   public:
@@ -302,7 +302,7 @@ class Request
         //translateDelta = 0;
     }
 
-    void setPhys(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time, uint32_t _virtualTime)
+    void setPhys(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time, VirtualTime _virtualTime)
     {
         _paddr = paddr;
         _size = size;

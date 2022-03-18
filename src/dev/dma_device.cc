@@ -172,7 +172,7 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
          !gen.done(); gen.next()) {
         //use sid field as virtual time
         req = std::make_shared<Request>(
-            gen.addr(), gen.size(), flag, masterId, sid);
+            gen.addr(), gen.size(), flag, masterId, (VirtualTime) sid);
 
         req->setStreamId(sid);
         req->setSubStreamId(ssid);
