@@ -213,6 +213,7 @@ SMMUProcess::run(PacketPtr pkt)
     void *array[10];
     size_t btsize = backtrace(array,10);
     backtrace_symbols_fd(array, btsize, 1);
-    printf("SMMUProcess::run %d\n", pkt->req->virtualTime);
+    printf("SMMUProcess::run vt %d ssid %d\n", pkt->req->virtualTime, pkt->req->hasSubstreamId() ?
+        pkt->req->substreamId() : -1);
     return (*coroutine)(pkt).get();
 }
