@@ -53,6 +53,7 @@
 #include "mem/port_proxy.hh"
 #include "sim/clocked_object.hh"
 #include "sim/system.hh"
+#include <stdio.h>
 
 DmaPort::DmaPort(ClockedObject *dev, System *s,
                  uint32_t sid, uint32_t ssid)
@@ -169,9 +170,9 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
             event ? event->scheduled() : -1);
     for (ChunkGenerator gen(addr, size, sys->cacheLineSize());
          !gen.done(); gen.next()) {
-
+        //use sid field as virtual time
         req = std::make_shared<Request>(
-            gen.addr(), gen.size(), flag, masterId);
+            gen.addr(), gen.size(), flag, masterId, sid);
 
         req->setStreamId(sid);
         req->setSubStreamId(ssid);

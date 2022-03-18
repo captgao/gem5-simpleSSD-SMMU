@@ -263,7 +263,7 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
-
+    std::cout << "dram_ctrl.cc: recvAtomic" << pkt->req->virtualTime << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 

@@ -475,6 +475,7 @@ void NVMeInterface::dmaWrite(uint64_t addr, uint64_t size, uint8_t *buffer,
   iter.size = size;
   iter.buffer = buffer;
   iter.context = context;
+  //use sid field as virtual time
   iter.sid = sid;
   iter.ssid = ssid;
   
