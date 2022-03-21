@@ -177,7 +177,7 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
     for (ChunkGenerator gen(addr, size, sys->cacheLineSize());
          !gen.done(); gen.next()) {
         //use sid field as virtual time
-        //printf("dma_device.cc DmaPort::dmaAction: creating request with virtualTime %d\n", sid);
+        printf("dma_device.cc DmaPort::dmaAction: creating request with masterId%d\n", masterId);
         req = std::make_shared<Request>(
             gen.addr(), gen.size(), flag, masterId, (VirtualTime) sid);
 
