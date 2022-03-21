@@ -64,7 +64,6 @@ SMMUProcess::wakeup()
 void
 SMMUProcess::reinit()
 {
-    printf("SMMUProcess:reinit\n");
     delete coroutine;
     coroutine = new Coroutine(
         std::bind(&SMMUProcess::main, this, std::placeholders::_1));
@@ -213,7 +212,7 @@ SMMUProcess::run(PacketPtr pkt)
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
-    printf("SMMUProcess::run vt %d ssid %d\n", pkt->req->virtualTime, pkt->req->hasSubstreamId() ?
-        pkt->req->substreamId() : -1);
+    //printf("SMMUProcess::run vt %d ssid %d\n", pkt->req->virtualTime, pkt->req->hasSubstreamId() ?
+        //pkt->req->substreamId() : -1);
     return (*coroutine)(pkt).get();
 }
