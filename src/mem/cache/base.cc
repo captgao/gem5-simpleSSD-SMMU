@@ -548,6 +548,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
 
     // We use lookupLatency here because it is used to specify the latency
     // to access.
+    std::cout << "BaseCache::recvAtomic" << std::endl;
     Cycles lat = lookupLatency;
 
     CacheBlk *blk = nullptr;

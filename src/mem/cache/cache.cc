@@ -670,7 +670,7 @@ Cache::recvAtomic(PacketPtr pkt)
         // rather than Modified state, we need to invalidate any
         // copies that are not on the same path to memory
         assert(pkt->needsWritable() && !pkt->responderHadWritable());
-
+        std::cout << "Cache:recvAtomic " << memSidePort.getPeer() << std::endl;
         return memSidePort.sendAtomic(pkt);
     }
 
