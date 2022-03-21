@@ -235,7 +235,7 @@ SMMUv3::runProcessAtomic(SMMUProcess *proc, PacketPtr pkt)
     SMMUAction action;
     Tick delay = 0;
     bool finished = false;
-
+    std::cout << "SMMUv3::runProcessAtomic " << masterPort.getPeer() << std::endl;
     do {
         action = proc->run(pkt);
 

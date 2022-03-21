@@ -126,7 +126,7 @@ SMMUv3SlaveInterface::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(SMMUv3, "[a] req from %s addr=%#x size=%#x\n",
             slavePort->getPeer(), pkt->getAddr(), pkt->getSize());
-    std::cout << "SMMUv3SlaveInterface::recvAtomic" << std::endl;
+    std::cout << "SMMUv3SlaveInterface::recvAtomic " << slavePort->getPeer() << std::endl;
     void *array[10];
     size_t btsize = backtrace(array,10);
     backtrace_symbols_fd(array, btsize, 1);
