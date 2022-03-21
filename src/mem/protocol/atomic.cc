@@ -46,12 +46,16 @@
 
 #include "base/trace.hh"
 
+#include <execinfo.h>
 /* The request protocol. */
 
 Tick
 AtomicRequestProtocol::send(AtomicResponseProtocol *peer, PacketPtr pkt)
 {
     assert(pkt->isRequest());
+    void *array[10];
+    size_t btsize = backtrace(array,10);
+    backtrace_symbols_fd(array, btsize, 1);
     return peer->recvAtomic(pkt);
 }
 

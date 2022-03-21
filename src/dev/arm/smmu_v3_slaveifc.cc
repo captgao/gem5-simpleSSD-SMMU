@@ -125,7 +125,7 @@ SMMUv3SlaveInterface::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(SMMUv3, "[a] req from %s addr=%#x size=%#x\n",
             slavePort->getPeer(), pkt->getAddr(), pkt->getSize());
-
+    std::cout << "SMMUv3SlaveInterface::recvAtomic" << std::endl;
     std::string proc_name = csprintf("%s.port", name());
     SMMUTranslationProcess proc(proc_name, *smmu, *this);
     proc.beginTransaction(SMMUTranslRequest::fromPacket(pkt));
@@ -173,7 +173,7 @@ SMMUv3SlaveInterface::atsSlaveRecvAtomic(PacketPtr pkt)
 {
     DPRINTF(SMMUv3, "[a] ATS slave  req  addr=%#x size=%#x\n",
             pkt->getAddr(), pkt->getSize());
-
+    std::cout << "SMMUv3SlaveInterface::atsSlaveRecvAtomic" << std::endl;
     std::string proc_name = csprintf("%s.atsport", name());
     const bool ats_request = true;
     SMMUTranslationProcess proc(
