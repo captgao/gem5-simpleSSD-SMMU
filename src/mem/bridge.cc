@@ -342,7 +342,7 @@ Bridge::BridgeSlavePort::recvAtomic(PacketPtr pkt)
 {
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
-
+    std::cout << "BridgeSlavePort::recvAtomic" << std::endl;
     return delay * bridge.clockPeriod() + masterPort.sendAtomic(pkt);
 }
 

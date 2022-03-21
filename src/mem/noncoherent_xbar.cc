@@ -249,7 +249,7 @@ NoncoherentXBar::recvAtomicBackdoor(PacketPtr pkt, PortID slave_port_id,
     DPRINTF(NoncoherentXBar, "recvAtomic: packet src %s addr 0x%x cmd %s\n",
             slavePorts[slave_port_id]->name(), pkt->getAddr(),
             pkt->cmdString());
-
+    std::cout << "NonCoherentXBar::recvAtomicBackdoor" << std::endl;
     unsigned int pkt_size = pkt->hasData() ? pkt->getSize() : 0;
     unsigned int pkt_cmd = pkt->cmdToIndex();
 
