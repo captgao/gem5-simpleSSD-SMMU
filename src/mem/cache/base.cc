@@ -573,6 +573,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
     assert(writebacks.empty());
 
     if (!satisfied) {
+        std::cout << "unsatisfied" << std::endl;
         lat += handleAtomicReqMiss(pkt, blk, writebacks);
     }
 
