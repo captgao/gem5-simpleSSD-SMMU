@@ -566,7 +566,7 @@ Cycles
 Cache::handleAtomicReqMiss(PacketPtr pkt, CacheBlk *&blk,
                            PacketList &writebacks)
 {
-    std::cout << "Cache::handleAtomicReqMiss" << std::endl;
+    // std::cout << "Cache::handleAtomicReqMiss" << std::endl;
     // deal with the packets that go through the write path of
     // the cache, i.e. any evictions and writes
     if (pkt->isEviction() || pkt->cmd == MemCmd::WriteClean ||
