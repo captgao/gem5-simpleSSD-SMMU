@@ -264,7 +264,6 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
-    printf("recvAtomic: 0x%x %d\n", pkt->getAddr(), pkt->masterId());
     //std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << std::endl;
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
         std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << std::endl;

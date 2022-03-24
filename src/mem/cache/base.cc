@@ -548,7 +548,6 @@ BaseCache::recvAtomic(PacketPtr pkt)
 
     // We use lookupLatency here because it is used to specify the latency
     // to access.
-    // std::cout << "BaseCache::recvAtomic" << std::endl;
     Cycles lat = lookupLatency;
 
     CacheBlk *blk = nullptr;
@@ -571,9 +570,6 @@ BaseCache::recvAtomic(PacketPtr pkt)
         pkt->setSatisfied();
     }
 
-    // if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
-    //     std::cout << "BaseCache::recvAtomic before 1st doWriteback" << std::endl;
-    // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
         for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->setSubStreamId(pkt->req->substreamId());
@@ -585,7 +581,6 @@ BaseCache::recvAtomic(PacketPtr pkt)
     assert(writebacks.empty());
 
     if (!satisfied) {
-        //std::cout << "BaseCache::recvAtomic unsatisfied" << std::endl;
         lat += handleAtomicReqMiss(pkt, blk, writebacks);
     }
 
@@ -599,10 +594,6 @@ BaseCache::recvAtomic(PacketPtr pkt)
     // for an example (though we'd want to issue the prefetch(es)
     // immediately rather than calling requestMemSideBus() as we do
     // there).
-
-    // if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
-    //     std::cout << "BaseCache::recvAtomic after 1st doWriteback" << std::endl;
-    // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
         for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->setSubStreamId(pkt->req->substreamId());
