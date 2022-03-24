@@ -553,7 +553,13 @@ BaseCache::recvAtomic(PacketPtr pkt)
 
     CacheBlk *blk = nullptr;
     PacketList writebacks;
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
+        std::cout << "BaseCache::recvAtomic before access" << std::endl;
+    }
     bool satisfied = access(pkt, blk, lat, writebacks);
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
+        std::cout << "BaseCache::recvAtomic after access" << std::endl;
+    }
 
     if (pkt->isClean() && blk && blk->isDirty()) {
         // A cache clean opearation is looking for a dirty
