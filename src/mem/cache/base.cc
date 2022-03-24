@@ -576,7 +576,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
     // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
         for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
-            it->req->setSubStreamId(pkt->req->substreamId());
+            (*it)->req->setSubStreamId(pkt->req->substreamId());
         }
     }
     // handle writebacks resulting from the access here to ensure they
@@ -605,7 +605,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
     // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
         for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
-            it->req->setSubStreamId(pkt->req->substreamId());
+            (*it)->req->setSubStreamId(pkt->req->substreamId());
         }
     }
     // do any writebacks resulting from the response handling
