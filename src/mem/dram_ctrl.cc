@@ -266,7 +266,7 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
     //std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << std::endl;
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
-        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << std::endl;
+        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
     if(pkt->req->virtualTime != 0)
         std::cout << "dram_ctrl.cc: recvAtomic" << pkt->req->virtualTime << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
