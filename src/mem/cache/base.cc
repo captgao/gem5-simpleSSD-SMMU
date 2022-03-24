@@ -569,8 +569,8 @@ BaseCache::recvAtomic(PacketPtr pkt)
         DPRINTF(CacheVerbose, "%s: packet %s found block: %s\n",
                 __func__, pkt->print(), blk->print());
         PacketPtr wb_pkt = writecleanBlk(blk, pkt->req->getDest(), pkt->id);
-        if(pkt->req->hasSubStreamId() && pkt->req->substreamId() != 0){
-            wb_pkt->req->setSubstreamId(pkt->req->getSubstreamId());
+        if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
+            wb_pkt->req->setSubStreamId(pkt->req->substreamId());
             std::cout << "setSubtreamId " << pkt->req->substreamId() << std::endl;
         }
         writebacks.push_back(wb_pkt);
