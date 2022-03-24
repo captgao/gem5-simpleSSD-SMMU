@@ -575,7 +575,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
     //     std::cout << "BaseCache::recvAtomic before 1st doWriteback" << std::endl;
     // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
-        for(it = writebacks.begin(); it!= writebacks.end(); it++) {
+        for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             it->req->setSubStreamId(pkt->req->substreamId());
         }
     }
@@ -604,7 +604,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
     //     std::cout << "BaseCache::recvAtomic after 1st doWriteback" << std::endl;
     // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
-        for(it = writebacks.begin(); it!= writebacks.end(); it++) {
+        for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             it->req->setSubStreamId(pkt->req->substreamId());
         }
     }
