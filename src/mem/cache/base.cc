@@ -569,10 +569,17 @@ BaseCache::recvAtomic(PacketPtr pkt)
         DPRINTF(CacheVerbose, "%s: packet %s found block: %s\n",
                 __func__, pkt->print(), blk->print());
         PacketPtr wb_pkt = writecleanBlk(blk, pkt->req->getDest(), pkt->id);
+        if(pkt->req->hasSubStreamId() && pkt->req->substreamId() != 0){
+            wb_pkt->req->setSubstreamId(pkt->req->getSubstreamId());
+            std::cout << "setSubtreamId " << pkt->req->substreamId() << std::endl;
+        }
         writebacks.push_back(wb_pkt);
         pkt->setSatisfied();
     }
 
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
+        std::cout << "BaseCache::recvAtomic before 1st doWriteback" << std::endl;
+    }
     // handle writebacks resulting from the access here to ensure they
     // logically precede anything happening below
     doWritebacksAtomic(writebacks);
@@ -594,6 +601,9 @@ BaseCache::recvAtomic(PacketPtr pkt)
     // immediately rather than calling requestMemSideBus() as we do
     // there).
 
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
+        std::cout << "BaseCache::recvAtomic after 1st doWriteback" << std::endl;
+    }
     // do any writebacks resulting from the response handling
     doWritebacksAtomic(writebacks);
 
