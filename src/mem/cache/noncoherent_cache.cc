@@ -174,6 +174,7 @@ Cycles
 NoncoherentCache::handleAtomicReqMiss(PacketPtr pkt, CacheBlk *&blk,
                                       PacketList &writebacks)
 {
+    std::cout << "NoncoherentCache::handleAtomicReqMiss" << std::endl;
     PacketPtr bus_pkt = createMissPacket(pkt, blk, true,
                                          pkt->isWholeLineWrite(blkSize));
     DPRINTF(Cache, "Sending an atomic %s\n", bus_pkt->print());
