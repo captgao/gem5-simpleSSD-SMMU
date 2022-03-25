@@ -265,6 +265,11 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
     std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << " "  << this->_system->getMasterName(pkt->masterId()) << std::endl;
+    if(pkt->masterId() == 0) {
+        void *array[10];
+        size_t btsize = backtrace(array,10);
+        backtrace_symbols_fd(array, btsize, 1);
+    }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
         std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
     if(pkt->req->virtualTime != 0)
