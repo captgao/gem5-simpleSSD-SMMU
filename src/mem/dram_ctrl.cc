@@ -56,7 +56,7 @@
 #include "debug/QOS.hh"
 #include "sim/system.hh"
 #include <stdio.h>
-
+#include <execinfo.h>
 using namespace std;
 using namespace Data;
 
