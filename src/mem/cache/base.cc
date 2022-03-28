@@ -553,7 +553,8 @@ BaseCache::recvAtomic(PacketPtr pkt)
     CacheBlk *blk = nullptr;
     PacketList writebacks;
     bool satisfied = access(pkt, blk, lat, writebacks);
-    std::cout << this->cpuSidePort << " " << this->memSidePort << std::endl;
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
+        std::cout << this->cpuSidePort << " " << this->memSidePort << std::endl;
     if (pkt->isClean() && blk && blk->isDirty()) {
         // A cache clean opearation is looking for a dirty
         // block. If a dirty block is encountered a WriteClean
