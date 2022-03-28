@@ -264,7 +264,7 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
-    std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << " "  << this->_system->getMasterName(pkt->masterId()) << std::endl;
+    //std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << " "  << this->_system->getMasterName(pkt->masterId()) << std::endl;
     // if(pkt->masterId() == 0) {
     //     void *array[10];
     //     size_t btsize = backtrace(array,10);
