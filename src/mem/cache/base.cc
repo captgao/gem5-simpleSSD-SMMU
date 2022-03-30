@@ -555,6 +555,11 @@ BaseCache::recvAtomic(PacketPtr pkt)
     bool satisfied = access(pkt, blk, lat, writebacks);
     if(pkt->req->coreId != -1) {
         std::cout << this->cpuSidePort << " " << this->memSidePort << std::endl;
+    } else {
+        std::cout << "BaseCache::RecvAtomic" << pkt->req->coreId << std::endl;
+        void *array[10];
+        size_t btsize = backtrace(array,10);
+        backtrace_symbols_fd(array, btsize, 1);
     }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
         std::cout << this->cpuSidePort << " " << this->memSidePort << std::endl;
