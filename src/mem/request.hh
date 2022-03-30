@@ -304,7 +304,6 @@ class Request
 
     void setPhys(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time, VirtualTime _virtualTime)
     {
-        printf("virtual time %d\n", _virtualTime);
         _paddr = paddr;
         _size = size;
         _time = time;
@@ -407,13 +406,15 @@ class Request
 
     VirtualTime virtualTime;
 
+    int coreId;
+
     /**
      * Minimal constructor. No fields are initialized. (Note that
      *  _flags and privateFlags are cleared by Flags default
      *  constructor.)
      */
     Request()
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
@@ -422,7 +423,7 @@ class Request
 
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid,
             InstSeqNum seq_num, ContextID cid)
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
           _reqInstSeqNum(seq_num), atomicOpFunctor(nullptr), translateDelta(0),
@@ -439,7 +440,7 @@ class Request
      * These fields are adequate to perform a request.
      */
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid)
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
@@ -450,7 +451,7 @@ class Request
 
 
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid, uint32_t virtualTime)
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
@@ -460,7 +461,7 @@ class Request
     }
 
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time)
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
@@ -471,7 +472,7 @@ class Request
 
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time,
             Addr pc)
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(pc),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
@@ -483,7 +484,7 @@ class Request
 
     Request(uint64_t asid, Addr vaddr, unsigned size, Flags flags,
             MasterID mid, Addr pc, ContextID cid)
-        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0),
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0), virtualTime(0), coreId(-1),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
           _extraData(0), _contextId(0), _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
@@ -510,6 +511,7 @@ class Request
           privateFlags(other.privateFlags),
           _time(other._time),
           virtualTime(other.virtualTime),
+          coreId(other.coreId),
           _taskId(other._taskId), _asid(other._asid), _vaddr(other._vaddr),
           _extraData(other._extraData), _contextId(other._contextId),
           _pc(other._pc), _reqInstSeqNum(other._reqInstSeqNum),
@@ -563,6 +565,7 @@ class Request
         _pc = pc;
         _time = curTick();
         virtualTime = 0;
+        coreId = -1;
         _flags.clear(~STICKY_FLAGS);
         _flags.set(flags);
         privateFlags.clear(~STICKY_PRIVATE_FLAGS);
