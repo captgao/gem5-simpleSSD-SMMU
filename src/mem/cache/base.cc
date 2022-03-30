@@ -63,6 +63,7 @@
 #include "params/BaseCache.hh"
 #include "params/WriteAllocator.hh"
 #include "sim/core.hh"
+#include <execinfo.h>
 
 using namespace std;
 
