@@ -408,6 +408,8 @@ AtomicSimpleCPU::readMem(Addr addr, uint8_t * data, unsigned size,
             !req->getFlags().isSet(Request::NO_ACCESS)) {
             Packet pkt(req, Packet::makeReadCmd(req));
             pkt.dataStatic(data);
+            pkt->req->coreId = this->_cpuId;
+            std::cout << "read coreId " << pkt->req->coreId << std::endl;
 
             if (req->isMmappedIpr()) {
                 dcache_latency += TheISA::handleIprRead(thread->getTC(), &pkt);
@@ -477,7 +479,6 @@ AtomicSimpleCPU::writeMem(uint8_t *data, unsigned size, Addr addr,
 
     req->taskId(taskId());
     req->coreId = this->_cpuId;
-    std::cout << "write coreId" << req->coreId << std::endl;
 
     Addr frag_addr = addr;
     int frag_size = 0;
@@ -515,7 +516,8 @@ AtomicSimpleCPU::writeMem(uint8_t *data, unsigned size, Addr addr,
             if (do_access && !req->getFlags().isSet(Request::NO_ACCESS)) {
                 Packet pkt(req, Packet::makeWriteCmd(req));
                 pkt.dataStatic(data);
-
+                pkt->req->coreId = this->_cpuId;
+                std::cout << "write coreId " << pkt->req->coreId << std::endl;
                 if (req->isMmappedIpr()) {
                     dcache_latency +=
                         TheISA::handleIprWrite(thread->getTC(), &pkt);
@@ -654,9 +656,9 @@ AtomicSimpleCPU::tick()
     SimpleThread* thread = t_info.thread;
 
     Tick latency = 0;
-    std::cout << "AtomicSimpleCPU::tick() 1" << std::endl;
+    //std::cout << "AtomicSimpleCPU::tick() 1" << std::endl;
     for (int i = 0; i < width || locked; ++i) {
-        std::cout << "AtomicSimpleCPU::tick() for 1" << std::endl;
+        //std::cout << "AtomicSimpleCPU::tick() for 1" << std::endl;
         
         numCycles++;
         updateCycleCounters(BaseCPU::CPU_STATE_ON);
@@ -711,7 +713,7 @@ AtomicSimpleCPU::tick()
                     // into the CPU object's inst field.
                 //}
             }
-            std::cout << "AtomicSimpleCPU::tick() send ifetch" << std::endl;
+            //std::cout << "AtomicSimpleCPU::tick() send ifetch" << std::endl;
 
             preExecute();
 
@@ -764,11 +766,11 @@ AtomicSimpleCPU::tick()
             advancePC(fault);
     }
 
-    std::cout << "AtomicSimpleCPU::tick() 2" << std::endl;
+    //std::cout << "AtomicSimpleCPU::tick() 2" << std::endl;
 
     if (tryCompleteDrain())
         return;
-    std::cout << "AtomicSimpleCPU::tick() 3" << std::endl;
+    //std::cout << "AtomicSimpleCPU::tick() 3" << std::endl;
 
     // instruction takes at least one cycle
     if (latency < clockPeriod())
