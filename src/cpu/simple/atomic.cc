@@ -385,6 +385,7 @@ AtomicSimpleCPU::readMem(Addr addr, uint8_t * data, unsigned size,
     dcache_latency = 0;
 
     req->taskId(taskId());
+    req->coreId = this->_cpuId;
 
     Addr frag_addr = addr;
     int frag_size = 0;
