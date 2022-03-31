@@ -585,6 +585,11 @@ BaseCache::recvAtomic(PacketPtr pkt)
             (*it)->req->setSubStreamId(pkt->req->substreamId());
         }
     }
+    if(pkt->req->coreId != -1) {
+        for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
+            (*it)->req->coreId = pkt->req->coreId;
+        }
+    }
     // handle writebacks resulting from the access here to ensure they
     // logically precede anything happening below
     doWritebacksAtomic(writebacks);
