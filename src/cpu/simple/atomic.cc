@@ -655,6 +655,8 @@ AtomicSimpleCPU::tick()
     Tick latency = 0;
     std::cout << "AtomicSimpleCPU::tick() 1" << std::endl;
     for (int i = 0; i < width || locked; ++i) {
+        std::cout << "AtomicSimpleCPU::tick() for 1" << std::endl;
+        
         numCycles++;
         updateCycleCounters(BaseCPU::CPU_STATE_ON);
 
@@ -677,6 +679,7 @@ AtomicSimpleCPU::tick()
                            !curMacroStaticInst;
         if (needToFetch) {
             ifetch_req->taskId(taskId());
+            ifetch_req->coreId = this->_cpuId;
             setupFetchRequest(ifetch_req);
             fault = thread->itb->translateAtomic(ifetch_req, thread->getTC(),
                                                  BaseTLB::Execute);
@@ -707,6 +710,7 @@ AtomicSimpleCPU::tick()
                     // into the CPU object's inst field.
                 //}
             }
+            std::cout << "AtomicSimpleCPU::tick() send ifetch" << std::endl;
 
             preExecute();
 
