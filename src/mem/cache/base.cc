@@ -555,7 +555,7 @@ BaseCache::recvAtomic(PacketPtr pkt)
     PacketList writebacks;
     bool satisfied = access(pkt, blk, lat, writebacks);
     if(pkt->req->coreId != -1) {
-        std::cout << "from " << pkt->req->coreId << " " << this->cpuSidePort << " " << this->memSidePort << std::endl;
+        //std::cout << "from " << pkt->req->coreId << " " << this->cpuSidePort << " " << this->memSidePort << std::endl;
     } else {
         // std::cout << "BaseCache::RecvAtomic" << pkt->req->coreId << std::endl;
         // void *array[10];

@@ -272,8 +272,10 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     // }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
         std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
-    if(pkt->req->coreId != -1) 
+    else if(pkt->req->coreId != -1) 
         std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
+    else
+        std::cout << "i" << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
