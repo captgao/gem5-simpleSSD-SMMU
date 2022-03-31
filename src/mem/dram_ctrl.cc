@@ -275,7 +275,7 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     else if(pkt->req->coreId != -1) 
         std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
     else
-        std::cout << "i" << std::endl;
+        std::cout << "i";
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
