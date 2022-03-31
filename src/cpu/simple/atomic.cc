@@ -653,7 +653,7 @@ AtomicSimpleCPU::tick()
     SimpleThread* thread = t_info.thread;
 
     Tick latency = 0;
-
+    std::cout << "AtomicSimpleCPU::tick() 1" << std::endl;
     for (int i = 0; i < width || locked; ++i) {
         numCycles++;
         updateCycleCounters(BaseCPU::CPU_STATE_ON);
@@ -759,8 +759,11 @@ AtomicSimpleCPU::tick()
             advancePC(fault);
     }
 
+    std::cout << "AtomicSimpleCPU::tick() 2" << std::endl;
+
     if (tryCompleteDrain())
         return;
+    std::cout << "AtomicSimpleCPU::tick() 3" << std::endl;
 
     // instruction takes at least one cycle
     if (latency < clockPeriod())
