@@ -408,8 +408,8 @@ AtomicSimpleCPU::readMem(Addr addr, uint8_t * data, unsigned size,
             !req->getFlags().isSet(Request::NO_ACCESS)) {
             Packet pkt(req, Packet::makeReadCmd(req));
             pkt.dataStatic(data);
-            pkt->req->coreId = this->_cpuId;
-            std::cout << "read coreId " << pkt->req->coreId << std::endl;
+            pkt.req->coreId = this->_cpuId;
+            std::cout << "read coreId " << pkt.req->coreId << std::endl;
 
             if (req->isMmappedIpr()) {
                 dcache_latency += TheISA::handleIprRead(thread->getTC(), &pkt);
@@ -516,8 +516,8 @@ AtomicSimpleCPU::writeMem(uint8_t *data, unsigned size, Addr addr,
             if (do_access && !req->getFlags().isSet(Request::NO_ACCESS)) {
                 Packet pkt(req, Packet::makeWriteCmd(req));
                 pkt.dataStatic(data);
-                pkt->req->coreId = this->_cpuId;
-                std::cout << "write coreId " << pkt->req->coreId << std::endl;
+                pkt.req->coreId = this->_cpuId;
+                std::cout << "write coreId " << pkt.req->coreId << std::endl;
                 if (req->isMmappedIpr()) {
                     dcache_latency +=
                         TheISA::handleIprWrite(thread->getTC(), &pkt);
