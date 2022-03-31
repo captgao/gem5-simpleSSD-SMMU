@@ -609,6 +609,11 @@ BaseCache::recvAtomic(PacketPtr pkt)
     // for an example (though we'd want to issue the prefetch(es)
     // immediately rather than calling requestMemSideBus() as we do
     // there).
+    if(pkt->req->coreId != -1) {
+        for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
+            (*it)->req->coreId = pkt->req->coreId;
+        }
+    }
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
         for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->setSubStreamId(pkt->req->substreamId());
