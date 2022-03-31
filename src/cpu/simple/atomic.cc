@@ -476,7 +476,7 @@ AtomicSimpleCPU::writeMem(uint8_t *data, unsigned size, Addr addr,
 
     req->taskId(taskId());
     req->coreId = this->_cpuId;
-    std::cout << "write coreId" << req->coreID << std::endl;
+    std::cout << "write coreId" << req->coreId << std::endl;
 
     Addr frag_addr = addr;
     int frag_size = 0;
