@@ -69,6 +69,7 @@
 #include "mem/qport.hh"
 #include "params/DRAMCtrl.hh"
 #include "sim/eventq.hh"
+#include "mem/dram_ctrl_reg_port.hh"
 
 /**
  * The DRAM controller is a single-channel memory controller capturing
@@ -129,6 +130,12 @@ class DRAMCtrl : public QoS::MemCtrl
      * in front of it
      */
     MemoryPort port;
+
+    /**
+     * Control Registers Port
+     * 
+     */
+    DRAMControlPort regPort;
 
     /**
      * Remember if the memory system is in timing mode
@@ -1187,6 +1194,9 @@ class DRAMCtrl : public QoS::MemCtrl
     virtual void init() override;
     virtual void startup() override;
     virtual void drainResume() override;
+
+    Tick readControl(PacketPtr pkt);
+    Tick writeControl(PacketPtr pkt);
 
     /**
      * Return true once refresh is complete for all ranks and there are no
