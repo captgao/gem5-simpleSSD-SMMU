@@ -63,7 +63,7 @@ using namespace Data;
 DRAMCtrl::DRAMCtrl(const DRAMCtrlParams* p) :
     QoS::MemCtrl(p),
     port(name() + ".port", *this), isTimingMode(false),
-    regPort(name() + ".control", *this, params->reg_map),
+    regPort(name() + ".control", *this, p->reg_map),
     retryRdReq(false), retryWrReq(false),
     nextReqEvent([this]{ processNextReqEvent(); }, name()),
     respondEvent([this]{ processRespondEvent(); }, name()),
