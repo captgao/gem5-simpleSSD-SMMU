@@ -1,6 +1,7 @@
 #include "mem/qport.hh"
 #include "mem/tport.hh"
-#include "mem/dram_ctrl.hh"
+
+class DRAMCtrl;
 
 class DRAMControlPort : public SimpleTimingPort
 {
