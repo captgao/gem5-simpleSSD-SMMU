@@ -1,4 +1,5 @@
 #include "mem/dram_ctrl_reg_port.hh"
+#include "mem/dram_ctrl.hh"
 
 DRAMControlPort::DRAMControlPort(const std::string &_name, DRAMCtrl &_dramCtrl, AddrRange _addrRange)
 :
