@@ -55,6 +55,7 @@
 #include "debug/Drain.hh"
 #include "debug/QOS.hh"
 #include "sim/system.hh"
+#include "mem/packet_access.hh"
 #include <stdio.h>
 #include <execinfo.h>
 using namespace std;
