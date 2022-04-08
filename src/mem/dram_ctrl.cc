@@ -114,7 +114,7 @@ DRAMCtrl::DRAMCtrl(const DRAMCtrlParams* p) :
              "must be a power of two\n", burstSize);
     readQueue.resize(p->qos_priorities);
     writeQueue.resize(p->qos_priorities);
-    memset(regs, 0, 65536);
+    memset(regs, 0, 65536 * 8);
 
     for (int i = 0; i < ranksPerChannel; i++) {
         Rank* rank = new Rank(*this, p, i);
@@ -279,6 +279,11 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     //     std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
     // else
     //     std::cout << "i";
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        int index = pkt->req->substreamId() % 8192;
+        regs[index] += pkt->getSize();
+        std::cout << "regs[" << index << "] " << regs[index] << std::endl; 
+    }
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
