@@ -64,6 +64,7 @@ DRAMCtrl::DRAMCtrl(const DRAMCtrlParams* p) :
     QoS::MemCtrl(p),
     port(name() + ".port", *this), isTimingMode(false),
     regPort(name() + ".control", *this, p->reg_map),
+    regsMap(p->reg_map),
     retryRdReq(false), retryWrReq(false),
     nextReqEvent([this]{ processNextReqEvent(); }, name()),
     respondEvent([this]{ processRespondEvent(); }, name()),
@@ -112,7 +113,7 @@ DRAMCtrl::DRAMCtrl(const DRAMCtrlParams* p) :
              "must be a power of two\n", burstSize);
     readQueue.resize(p->qos_priorities);
     writeQueue.resize(p->qos_priorities);
-
+    memset(regs, 0, 65536);
 
     for (int i = 0; i < ranksPerChannel; i++) {
         Rank* rank = new Rank(*this, p, i);
@@ -2846,6 +2847,9 @@ DRAMCtrlParams::create()
 Tick
 DRAMCtrl::readControl(PacketPtr pkt)
 {
+    int offset = pkt->getAddr() - regsMap.start();
+    assert(offset >= 0 && offset < 65536);
+
     return 0;
 }
 

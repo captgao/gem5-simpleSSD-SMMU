@@ -1184,6 +1184,8 @@ class DRAMCtrl : public QoS::MemCtrl
     };
 
   public:
+    const AddrRange regsMap;
+    uint8_t regs[65536];
     DRAMCtrl(const DRAMCtrlParams* p);
 
     DrainState drain() override;
