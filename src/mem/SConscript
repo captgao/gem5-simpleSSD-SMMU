@@ -64,6 +64,7 @@ Source('bridge.cc')
 Source('coherent_xbar.cc')
 Source('drampower.cc')
 Source('dram_ctrl.cc')
+Source('dram_ctrl_reg_port.cc')
 Source('external_master.cc')
 Source('external_slave.cc')
 Source('noncoherent_xbar.cc')
@@ -81,6 +82,7 @@ Source('xbar.cc')
 Source('hmc_controller.cc')
 Source('serial_link.cc')
 Source('mem_delay.cc')
+
 
 if env['TARGET_ISA'] != 'null':
     Source('fs_translating_port_proxy.cc')
