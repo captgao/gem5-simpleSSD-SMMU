@@ -2721,6 +2721,9 @@ DRAMCtrl::recvFunctional(PacketPtr pkt)
 Port &
 DRAMCtrl::getPort(const string &if_name, PortID idx)
 {
+    if (if_name == "control") {
+        return regPort;
+    }
     if (if_name != "port") {
         return QoS::MemCtrl::getPort(if_name, idx);
     } else {
