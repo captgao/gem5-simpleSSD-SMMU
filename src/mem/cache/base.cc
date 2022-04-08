@@ -562,8 +562,8 @@ BaseCache::recvAtomic(PacketPtr pkt)
         // size_t btsize = backtrace(array,10);
         // backtrace_symbols_fd(array, btsize, 1);
     }
-    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
-        std::cout << this->cpuSidePort << " " << this->memSidePort << std::endl;
+    // if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
+    //     std::cout << this->cpuSidePort << " " << this->memSidePort << std::endl;
     if (pkt->isClean() && blk && blk->isDirty()) {
         // A cache clean opearation is looking for a dirty
         // block. If a dirty block is encountered a WriteClean
