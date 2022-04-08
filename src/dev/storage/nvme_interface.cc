@@ -317,7 +317,7 @@ Tick NVMeInterface::read(PacketPtr pkt) {
 }
 
 Tick NVMeInterface::write(PacketPtr pkt) {
-  printf("NVMeInterface::write %lx\n", pkt->getAddr());
+  //printf("NVMeInterface::write %lx\n", pkt->getAddr());
   if (!pController) {
     pkt->makeAtomicResponse();
 

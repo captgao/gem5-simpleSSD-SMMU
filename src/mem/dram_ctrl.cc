@@ -2859,7 +2859,7 @@ DRAMCtrl::readControl(PacketPtr pkt)
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536);
 
-    auto reg_ptr = regs + offset;
+    void* reg_ptr = (void*)regs + offset;
 
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
@@ -2883,11 +2883,11 @@ DRAMCtrl::writeControl(PacketPtr pkt)
     assert(offset >= 0 && offset < SMMU_REG_SIZE);
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
-        *reinterpret_cast<uint32_t *>(regs + offset) =
+        *reinterpret_cast<uint32_t *>((void*)regs + offset) =
             pkt->getLE<uint32_t>();
         break;
       case sizeof(uint64_t):
-        *reinterpret_cast<uint64_t *>(regs + offset) =
+        *reinterpret_cast<uint64_t *>((void*)regs + offset) =
             pkt->getLE<uint64_t>();
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());

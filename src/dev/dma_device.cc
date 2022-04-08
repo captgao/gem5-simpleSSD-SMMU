@@ -160,12 +160,12 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
     // split into many requests and packets based on the block size,
     // i.e. cache line size
     DmaReqState *reqState = new DmaReqState(event, size, delay);
-    if(sid != 0){
-        printf("DmaPort::dmaACtion sid %d ssid%d size%d\n", sid, ssid, size);
-        void *array[10];
-        size_t btsize = backtrace(array,10);
-        backtrace_symbols_fd(array, btsize, 1);
-    }
+    // if(sid != 0){
+    //     printf("DmaPort::dmaACtion sid %d ssid%d size%d\n", sid, ssid, size);
+    //     void *array[10];
+    //     size_t btsize = backtrace(array,10);
+    //     backtrace_symbols_fd(array, btsize, 1);
+    // }
     // (functionality added for Table Walker statistics)
     // We're only interested in this when there will only be one request.
     // For simplicity, we return the last request, which would also be
@@ -177,8 +177,8 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
     for (ChunkGenerator gen(addr, size, sys->cacheLineSize());
          !gen.done(); gen.next()) {
         //use sid field as virtual time
-        if(sid != 0)
-            printf("dma_device.cc DmaPort::dmaAction: creating request with masterId%d\n", masterId);
+        // if(sid != 0)
+        //     printf("dma_device.cc DmaPort::dmaAction: creating request with masterId%d\n", masterId);
         req = std::make_shared<Request>(
             gen.addr(), gen.size(), flag, masterId, (VirtualTime) sid);
 
