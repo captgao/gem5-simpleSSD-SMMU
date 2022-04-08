@@ -2881,7 +2881,7 @@ DRAMCtrl::writeControl(PacketPtr pkt)
             pkt->getLE<uint32_t>();
         break;
       case sizeof(uint64_t):
-        *reinterpret_cast<uint64_t *>(regs.data + offset) =
+        *reinterpret_cast<uint64_t *>(regs + offset) =
             pkt->getLE<uint64_t>();
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
