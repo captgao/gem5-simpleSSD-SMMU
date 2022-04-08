@@ -2723,9 +2723,9 @@ DRAMCtrl::recvFunctional(PacketPtr pkt)
 {
     // rely on the abstract memory
     std::cout << "DRAMCtrl::recvFunctional" << std::endl;
-    void *array[10];
-    size_t btsize = backtrace(array,10);
-    backtrace_symbols_fd(array, btsize, 1);
+    // void *array[10];
+    // size_t btsize = backtrace(array,10);
+    // backtrace_symbols_fd(array, btsize, 1);
     functionalAccess(pkt);
 }
 
