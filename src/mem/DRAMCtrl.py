@@ -77,8 +77,10 @@ class DRAMCtrl(QoSMemCtrl):
     # single-ported on the system interface side, instantiate with a
     # bus in front of the controller for multiple ports
     port = SlavePort("Slave port")
+
+    control = SlavePort('Control port for accessing memory-mapped registers')
     
-    reg_map = Param.AddrRange('Address range for control registers')
+    reg_map = Param.AddrRange(AddrRange(0x2b400000, size=0x00040000),'Address range for control registers')
 
     # the basic configuration of the controller architecture, note
     # that each entry corresponds to a burst for the specific DRAM
