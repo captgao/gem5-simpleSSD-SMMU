@@ -764,7 +764,7 @@ DRAMCtrl::chooseNext(DRAMPacketQueue& queue, Tick extra_col_delay)
     // This method does the arbitration between requests.
 
     DRAMCtrl::DRAMPacketQueue::iterator ret = queue.end();
-
+    std::cout << "DRAMCtrl:: chooseNext" << std::endl;
     if (!queue.empty()) {
         if (queue.size() == 1) {
             // available rank corresponds to state refresh idle
