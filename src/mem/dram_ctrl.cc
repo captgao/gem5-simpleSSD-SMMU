@@ -621,7 +621,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     else if(pkt->req->coreId != -1) 
         std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
     else {
-        std::cout << "MasterId" << pkt->req->masterId() << std::endl;
+        std::cout << "MasterId" << pkt->req->masterId() << this->_system.getMasterName(pkt->req->masterId()) << std::endl;
         void *array[10];
         size_t btsize = backtrace(array,10);
         backtrace_symbols_fd(array, btsize, 1);
