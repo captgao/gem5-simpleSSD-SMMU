@@ -773,6 +773,9 @@ DRAMCtrl::chooseNext(DRAMPacketQueue& queue, Tick extra_col_delay)
 
     DRAMCtrl::DRAMPacketQueue::iterator ret = queue.end();
     std::cout << "DRAMCtrl:: chooseNext" << std::endl;
+    void *array[5];
+    size_t btsize = backtrace(array,5);
+    backtrace_symbols_fd(array, btsize, 1);
     if (!queue.empty()) {
         if (queue.size() == 1) {
             // available rank corresponds to state refresh idle
