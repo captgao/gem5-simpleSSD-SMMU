@@ -2828,9 +2828,9 @@ DRAMCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
 {
     pkt->pushLabel(memory.name());
     std::cout << "DRAMCtrl::MemoryPort::recvFunctional" << std::endl;
-    void *array[10];
-    size_t btsize = backtrace(array,10);
-    backtrace_symbols_fd(array, btsize, 1);
+    // void *array[10];
+    // size_t btsize = backtrace(array,10);
+    // backtrace_symbols_fd(array, btsize, 1);
     if (!queue.trySatisfyFunctional(pkt)) {
         // Default implementation of SimpleTimingPort::recvFunctional()
         // calls recvAtomic() and throws away the latency; we can save a
