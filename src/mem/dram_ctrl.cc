@@ -608,12 +608,20 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
-    std::cout << "dram_ctrl.cc recvTimingReq: " << pkt->req->virtualTime << std::endl;
+    //std::cout << "dram_ctrl.cc recvTimingReq: " << pkt->req->virtualTime << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
     panic_if(!(pkt->isRead() || pkt->isWrite()),
              "Should only see read and writes at memory controller\n");
+
+
+    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
+        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
+    else if(pkt->req->coreId != -1) 
+        std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
+    else
+        std::cout << "i";
 
     // Calc avg gap between requests
     if (prevArrival != 0) {

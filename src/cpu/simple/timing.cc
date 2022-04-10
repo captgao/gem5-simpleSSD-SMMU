@@ -435,6 +435,7 @@ TimingSimpleCPU::initiateMemRead(Addr addr, unsigned size,
     RequestPtr req = std::make_shared<Request>(
         asid, addr, size, flags, dataMasterId(), pc,
         thread->contextId());
+    req->coreId = this->_cpuId;
     if (!byte_enable.empty()) {
         req->setByteEnable(byte_enable);
     }
@@ -478,6 +479,7 @@ TimingSimpleCPU::handleWritePacket()
     SimpleThread* thread = t_info.thread;
 
     const RequestPtr &req = dcache_pkt->req;
+    req->coreId = this->_cpuId;
     if (req->isMmappedIpr()) {
         Cycles delay = TheISA::handleIprWrite(thread->getTC(), dcache_pkt);
         new IprEvent(dcache_pkt, this, clockEdge(delay));
