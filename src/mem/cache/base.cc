@@ -358,6 +358,16 @@ BaseCache::recvTimingReq(PacketPtr pkt)
         // After the evicted blocks are selected, they must be forwarded
         // to the write buffer to ensure they logically precede anything
         // happening below
+        if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0){
+            for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
+                (*it)->req->setSubStreamId(pkt->req->substreamId());
+            }
+        }
+        if(pkt->req->coreId != -1) {
+            for(auto it = writebacks.begin(); it!= writebacks.end(); it++) {
+                (*it)->req->coreId = pkt->req->coreId;
+            }
+        }
         doWritebacks(writebacks, clockEdge(lat + forwardLatency));
     }
 
