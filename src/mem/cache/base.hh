@@ -1123,9 +1123,9 @@ class BaseCache : public ClockedObject
         assert(pkt->isWrite() || pkt->cmd == MemCmd::CleanEvict);
         if(pkt->req->coreId == -1) {
             std::cout << "allocateWriteBuffer " << pkt->req->coreId << std::endl; 
-            void *array[10];
-            size_t btsize = backtrace(array,10);
-            backtrace_symbols_fd(array, btsize, 1);
+            // void *array[10];
+            // size_t btsize = backtrace(array,5);
+            // backtrace_symbols_fd(array, btsize, 1);
         }
         Addr blk_addr = pkt->getBlockAddr(blkSize);
 

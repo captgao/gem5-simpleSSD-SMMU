@@ -620,8 +620,8 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
             << " masterId " << pkt->req->masterId() << std::endl;
     else if (pkt->req->coreId != -1) {
-        // std::cout << "dram_ctrl.cc: coreId"
-         // << pkt->req->coreId << std::endl;
+        std::cout << "dram_ctrl.cc: coreId"
+         << pkt->req->coreId << std::endl;
     }
     else {
         std::cout << "MasterId" << pkt->req->masterId()

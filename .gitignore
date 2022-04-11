@@ -39,3 +39,4 @@ scripts/
 compile_flags.txt
 .vscode/
 *code-workspace
+out_cout.txt
