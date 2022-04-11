@@ -262,6 +262,7 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
         //@todo remove hw_pf here
 
         // Coalesce unless it was a software prefetch (see above).
+        std::cout << "mshr" << std::endl;
         if (pkt) {
             assert(!pkt->isWriteback());
             // CleanEvicts corresponding to blocks which have
@@ -303,6 +304,7 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
         }
     } else {
         // no MSHR
+        std::cout << "no mshr" << std::endl;
         assert(pkt->req->masterId() < system->maxMasters());
         stats.cmdStats(pkt).mshr_misses[pkt->req->masterId()]++;
 
@@ -334,6 +336,7 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
             // Here we are using forward_time, modelling the latency of
             // a miss (outbound) just as forwardLatency, neglecting the
             // lookupLatency component.
+            std::cout << "allocateMissBuffer" << std::endl;
             allocateMissBuffer(pkt, forward_time);
         }
     }
