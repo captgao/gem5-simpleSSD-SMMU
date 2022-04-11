@@ -2444,7 +2444,8 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
 {
     // sanity check
     assert(!waitingOnRetry);
-    std::cout << "BaseCache::CacheReqPacketQueue::sendDeferredPacket"
+    std::cout << "BaseCache::CacheReqPacketQueue::sendDeferredPacket "
+        << name()
         << std::endl;
     // there should never be any deferred request packets in the
     // queue, instead we resly on the cache to provide the packets
