@@ -190,6 +190,7 @@ PacketQueue::schedSendEvent(Tick when)
 void
 PacketQueue::sendDeferredPacket()
 {
+    //std::cout << "PacketQueue::sendDeferredPacket" << std::endl;
     // sanity checks
     assert(!waitingOnRetry);
     assert(deferredPacketReady());

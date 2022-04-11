@@ -243,6 +243,11 @@ void
 BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
                                Tick forward_time, Tick request_time)
 {
+    // void *array[10];
+    // size_t btsize = backtrace(array,10);
+    // backtrace_symbols_fd(array, btsize, 1);
+    std::cout << "BaseCache::handleTimingReqMiss "
+        << pkt->req->coreId << std::endl;
     if (writeAllocator &&
         pkt && pkt->isWrite() && !pkt->req->isUncacheable()) {
         writeAllocator->updateMode(pkt->getAddr(), pkt->getSize(),
@@ -2439,7 +2444,8 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
 {
     // sanity check
     assert(!waitingOnRetry);
-
+    std::cout << "BaseCache::CacheReqPacketQueue::sendDeferredPacket"
+        << std::endl;
     // there should never be any deferred request packets in the
     // queue, instead we resly on the cache to provide the packets
     // from the MSHR queue or write queue
@@ -2458,6 +2464,9 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
         if (checkConflictingSnoop(entry->getTarget()->pkt)) {
             return;
         }
+        std::cout << "pkt coreId "
+            << entry->getTarget()->pkt->req->coreId
+            << std::endl;
         waitingOnRetry = entry->sendPacket(cache);
     }
 

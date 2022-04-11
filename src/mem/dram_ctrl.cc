@@ -617,16 +617,20 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
 
 
     if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
-        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
-    else if(pkt->req->coreId != -1) 
-        std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
+        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
+            << " masterId " << pkt->req->masterId() << std::endl;
+    else if (pkt->req->coreId != -1) {
+        // std::cout << "dram_ctrl.cc: coreId"
+         // << pkt->req->coreId << std::endl;
+    }
     else {
         std::cout << "MasterId" << pkt->req->masterId()
             << this->_system->getMasterName(pkt->req->masterId()) << std::endl;
         if (pkt->req->masterId() == 0) {
-        // void *array[10];
-        // size_t btsize = backtrace(array,10);
-        // backtrace_symbols_fd(array, btsize, 1);
+            // std::cout << "MasterId 0" << std::endl;
+            // void *array[10];
+            // size_t btsize = backtrace(array,10);
+            // backtrace_symbols_fd(array, btsize, 1);
         }
     }
 
