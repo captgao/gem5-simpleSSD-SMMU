@@ -2485,6 +2485,7 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
         }
         std::cout << "pkt coreId "
             << entry->getTarget()->pkt->req->coreId
+            << " " << entry->getTarget()->pkt->id
             << std::endl;
         waitingOnRetry = entry->sendPacket(cache);
     }
