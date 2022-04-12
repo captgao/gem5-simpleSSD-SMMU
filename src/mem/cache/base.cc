@@ -1804,7 +1804,8 @@ BaseCache::sendWriteQueuePacket(WriteQueueEntry* wq_entry)
     PacketPtr tgt_pkt = wq_entry->getTarget()->pkt;
 
     DPRINTF(Cache, "%s: write %s\n", __func__, tgt_pkt->print());
-
+    std::cout << "BaseCache::sendWriteQueuePacket" 
+        << memSidePort.getPeer().name() << std::endl;
     // forward as is, both for evictions and uncacheable writes
     if (!memSidePort.sendTimingReq(tgt_pkt)) {
         // note that we have now masked any requestBus and
