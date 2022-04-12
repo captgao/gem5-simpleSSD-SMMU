@@ -247,7 +247,8 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
     std::cout << "BaseCache::handleTimingReqMiss "
-        << pkt->req->coreId << std::endl;
+        << pkt->req->coreId << " "
+        << pkt->id << std::endl;
     if (writeAllocator &&
         pkt && pkt->isWrite() && !pkt->req->isUncacheable()) {
         writeAllocator->updateMode(pkt->getAddr(), pkt->getSize(),
@@ -304,7 +305,6 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
         }
     } else {
         // no MSHR
-        std::cout << "no mshr" << std::endl;
         assert(pkt->req->masterId() < system->maxMasters());
         stats.cmdStats(pkt).mshr_misses[pkt->req->masterId()]++;
 
@@ -348,7 +348,11 @@ BaseCache::recvTimingReq(PacketPtr pkt)
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
     Tick forward_time = clockEdge(forwardLatency) + pkt->headerDelay;
-
+    if (name().find("system.cpu") == std::string::npos) {
+        std::cout << "BaseCache::recvTimingReq "
+        << name()
+        << std::endl;
+    }
     Cycles lat;
     CacheBlk *blk = nullptr;
     bool satisfied = false;
@@ -424,7 +428,7 @@ void
 BaseCache::recvTimingResp(PacketPtr pkt)
 {
     assert(pkt->isResponse());
-
+    std::cout << "BaseCache::recvTimingResp" << std::endl;
     // all header delay should be paid for by the crossbar, unless
     // this is a prefetch response from above
     panic_if(pkt->headerDelay != 0 && pkt->cmd != MemCmd::HardPFResp,
@@ -2458,9 +2462,9 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
 {
     // sanity check
     assert(!waitingOnRetry);
-    // std::cout << "BaseCache::CacheReqPacketQueue::sendDeferredPacket "
-    //     << name()
-    //     << std::endl;
+    std::cout << "BaseCache::CacheReqPacketQueue::sendDeferredPacket "
+        << name()
+        << std::endl;
     // there should never be any deferred request packets in the
     // queue, instead we resly on the cache to provide the packets
     // from the MSHR queue or write queue
