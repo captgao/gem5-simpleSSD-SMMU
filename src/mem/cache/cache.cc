@@ -192,6 +192,10 @@ Cache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
 void
 Cache::doWritebacks(PacketList& writebacks, Tick forward_time)
 {
+    if (name().find("system.cpu") == std::string::npos) {
+        std::cout << "Cache::doWritebacks" << name()
+            << std::endl;
+    }
     while (!writebacks.empty()) {
         PacketPtr wbPkt = writebacks.front();
         // We use forwardLatency here because we are copying writebacks to
