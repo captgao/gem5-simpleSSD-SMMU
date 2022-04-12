@@ -625,10 +625,10 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     }
     else {
         std::cout << "MasterId" << pkt->req->masterId()
-            << this->_system->getMasterName(pkt->req->masterId()) << std::endl;
+            << this->_system->getMasterName(pkt->req->masterId()) 
+            << " " << pkt->id << std::endl;
         if (pkt->req->masterId() == 0) {
-            // std::cout << "MasterId 0" << std::endl;
-            std::cout << "packet id " << pkt->id << std::endl;
+            printf("req address 0x%x\n", pkt->req->getPaddr());
             void *array[10];
             size_t btsize = backtrace(array,10);
             backtrace_symbols_fd(array, btsize, 1);
