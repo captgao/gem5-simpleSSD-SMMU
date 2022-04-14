@@ -193,8 +193,6 @@ void
 Cache::doWritebacks(PacketList& writebacks, Tick forward_time)
 {
     if (name().find("system.cpu") == std::string::npos) {
-        std::cout << "Cache::doWritebacks" << name()
-            << std::endl;
     }
     while (!writebacks.empty()) {
         PacketPtr wbPkt = writebacks.front();

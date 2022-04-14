@@ -620,18 +620,24 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
             << " masterId " << pkt->req->masterId() << std::endl;
     else if (pkt->req->coreId != -1) {
-        std::cout << "dram_ctrl.cc: coreId"
-         << pkt->req->coreId << std::endl;
+        // std::cout << "dram_ctrl.cc: coreId"
+        //  << pkt->req->coreId << " 0x"
+        //  << std::hex << pkt->req->getPaddr() << std::dec
+        //  << std::endl;
     }
     else {
-        std::cout << "MasterId" << pkt->req->masterId()
-            << this->_system->getMasterName(pkt->req->masterId()) 
-            << " " << pkt->id << std::endl;
+        // std::cout << "MasterId" << pkt->req->masterId()
+        //     << this->_system->getMasterName(pkt->req->masterId())
+        //     << " " << std::hex << pkt->req->getPaddr() << std::dec
+        //     << std::endl;
         if (pkt->req->masterId() == 0) {
-            printf("req address 0x%x\n", pkt->req->getPaddr());
-            void *array[10];
-            size_t btsize = backtrace(array,10);
-            backtrace_symbols_fd(array, btsize, 1);
+            std::cout << "MasterId" << pkt->req->masterId()
+                << this->_system->getMasterName(pkt->req->masterId())
+                << " " << std::hex << pkt->req->getPaddr() << std::dec
+                << std::endl;
+            // void *array[10];
+            // size_t btsize = backtrace(array,10);
+            // backtrace_symbols_fd(array, btsize, 1);
         }
     }
 
