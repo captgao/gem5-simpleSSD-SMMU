@@ -64,12 +64,12 @@
 #include "enums/AddrMap.hh"
 #include "enums/MemSched.hh"
 #include "enums/PageManage.hh"
+#include "mem/dram_ctrl_reg_port.hh"
 #include "mem/drampower.hh"
 #include "mem/qos/mem_ctrl.hh"
 #include "mem/qport.hh"
 #include "params/DRAMCtrl.hh"
 #include "sim/eventq.hh"
-#include "mem/dram_ctrl_reg_port.hh"
 
 /**
  * The DRAM controller is a single-channel memory controller capturing
@@ -133,7 +133,7 @@ class DRAMCtrl : public QoS::MemCtrl
 
     /**
      * Control Registers Port
-     * 
+     *
      */
     DRAMControlPort regPort;
 
