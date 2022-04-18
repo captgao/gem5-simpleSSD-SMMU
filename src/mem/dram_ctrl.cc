@@ -671,6 +671,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         if (writeQueueFull(dram_pkt_count)) {
             DPRINTF(DRAM, "Write queue full, not accepting\n");
             // remember that we have to retry this port
+            std::cout << "DRAMCtrl: write queue full" << std::endl;
             retryWrReq = true;
             stats.numWrRetry++;
             return false;
@@ -685,6 +686,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         if (readQueueFull(dram_pkt_count)) {
             DPRINTF(DRAM, "Read queue full, not accepting\n");
             // remember that we have to retry this port
+            std::cout << "DRAMCtrl: read queue full" << std::endl;
             retryRdReq = true;
             stats.numRdRetry++;
             return false;
