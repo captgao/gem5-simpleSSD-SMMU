@@ -47,6 +47,10 @@
 
 #include "mem/dram_ctrl.hh"
 
+#include <execinfo.h>
+
+#include <cstdio>
+
 #include "base/bitfield.hh"
 #include "base/trace.hh"
 #include "debug/DRAM.hh"
@@ -54,10 +58,9 @@
 #include "debug/DRAMState.hh"
 #include "debug/Drain.hh"
 #include "debug/QOS.hh"
-#include "sim/system.hh"
 #include "mem/packet_access.hh"
-#include <stdio.h>
-#include <execinfo.h>
+#include "sim/system.hh"
+
 using namespace std;
 using namespace Data;
 
@@ -275,15 +278,15 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     // }
     // if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
     //     std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
-    // else if (pkt->req->coreId != -1) 
+    // else if (pkt->req->coreId != -1)
     //     std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
     // else
     //     std::cout << "i";
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
         regs.traffic[index] += pkt->getSize();
-        std::cout << "regs[" << index << "] " 
-            << regs.traffic[index] << std::endl; 
+        std::cout << "regs[" << index << "] "
+            << regs.traffic[index] << std::endl;
     }
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
@@ -619,7 +622,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
         regs.traffic[index] += pkt->getSize();
-        std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl; 
+        std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl;
     }
 
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
@@ -2757,8 +2760,8 @@ void
 DRAMCtrl::recvFunctional(PacketPtr pkt)
 {
     // rely on the abstract memory
-    std::cout << "DRAMCtrl::recvFunctional " 
-    << this->_system->getMasterName(pkt->req->masterId()) 
+    std::cout << "DRAMCtrl::recvFunctional "
+    << this->_system->getMasterName(pkt->req->masterId())
     << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
@@ -2864,7 +2867,7 @@ void
 DRAMCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
 {
     pkt->pushLabel(memory.name());
-    std::cout << "DRAMCtrl::MemoryPort::recvFunctional " 
+    std::cout << "DRAMCtrl::MemoryPort::recvFunctional "
      << name() << " "
      << getPeer()
      << std::endl;
