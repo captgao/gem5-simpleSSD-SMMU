@@ -1185,7 +1185,15 @@ class DRAMCtrl : public QoS::MemCtrl
 
   public:
     const AddrRange regsMap;
-    uint64_t regs[65536];
+    union DRAMRegs {
+      uint64_t data[65536];
+      struct {
+        uint64_t traffic[8192];
+        uint64_t virtualTime_pid[8192];
+        uint64_t virtualTime_coreId[4];
+        uint64_t pid_coreId[4];
+      };
+    } regs;
     DRAMCtrl(const DRAMCtrlParams* p);
 
     DrainState drain() override;

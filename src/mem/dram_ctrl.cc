@@ -114,7 +114,7 @@ DRAMCtrl::DRAMCtrl(const DRAMCtrlParams* p) :
              "must be a power of two\n", burstSize);
     readQueue.resize(p->qos_priorities);
     writeQueue.resize(p->qos_priorities);
-    memset(regs, 0, 65536 * 8);
+    memset(regs.data, 0, 65536 * 8);
 
     for (int i = 0; i < ranksPerChannel; i++) {
         Rank* rank = new Rank(*this, p, i);
@@ -268,21 +268,22 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
     //std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << " "  << this->_system->getMasterName(pkt->masterId()) << std::endl;
-    // if(pkt->masterId() == 0) {
+    // if (pkt->masterId() == 0) {
     //     void *array[10];
     //     size_t btsize = backtrace(array,10);
     //     backtrace_symbols_fd(array, btsize, 1);
     // }
-    // if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
+    // if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
     //     std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
-    // else if(pkt->req->coreId != -1) 
+    // else if (pkt->req->coreId != -1) 
     //     std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
     // else
     //     std::cout << "i";
-    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
-        regs[index] += pkt->getSize();
-        std::cout << "regs[" << index << "] " << regs[index] << std::endl; 
+        regs.traffic[index] += pkt->getSize();
+        std::cout << "regs[" << index << "] " 
+            << regs.traffic[index] << std::endl; 
     }
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
@@ -615,8 +616,13 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     panic_if(!(pkt->isRead() || pkt->isWrite()),
              "Should only see read and writes at memory controller\n");
 
+    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        int index = pkt->req->substreamId() % 8192;
+        regs.traffic[index] += pkt->getSize();
+        std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl; 
+    }
 
-    if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
+    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
         std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
             << " masterId " << pkt->req->masterId() << std::endl;
     else if (pkt->req->coreId != -1) {
@@ -631,10 +637,10 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         //     << " " << std::hex << pkt->req->getPaddr() << std::dec
         //     << std::endl;
         if (pkt->req->masterId() == 0) {
-            std::cout << "MasterId" << pkt->req->masterId()
-                << this->_system->getMasterName(pkt->req->masterId())
-                << " " << std::hex << pkt->req->getPaddr() << std::dec
-                << std::endl;
+            // std::cout << "MasterId" << pkt->req->masterId()
+            //     << this->_system->getMasterName(pkt->req->masterId())
+            //     << " " << std::hex << pkt->req->getPaddr() << std::dec
+            //     << std::endl;
             // void *array[10];
             // size_t btsize = backtrace(array,10);
             // backtrace_symbols_fd(array, btsize, 1);
@@ -2751,7 +2757,9 @@ void
 DRAMCtrl::recvFunctional(PacketPtr pkt)
 {
     // rely on the abstract memory
-    std::cout << "DRAMCtrl::recvFunctional" << std::endl;
+    std::cout << "DRAMCtrl::recvFunctional " 
+    << this->_system->getMasterName(pkt->req->masterId()) 
+    << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
@@ -2856,7 +2864,10 @@ void
 DRAMCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
 {
     pkt->pushLabel(memory.name());
-    std::cout << "DRAMCtrl::MemoryPort::recvFunctional" << std::endl;
+    std::cout << "DRAMCtrl::MemoryPort::recvFunctional " 
+     << name() << " "
+     << getPeer()
+     << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
@@ -2893,9 +2904,9 @@ Tick
 DRAMCtrl::readControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
-    assert(offset >= 0 && offset < 65536);
+    assert(offset >= 0 && offset < 65536 * 8);
 
-    void* reg_ptr = (void*)regs + offset;
+    void* reg_ptr = (void*)regs.data + offset;
 
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
@@ -2916,14 +2927,19 @@ Tick
 DRAMCtrl::writeControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
-    assert(offset >= 0 && offset < SMMU_REG_SIZE);
+    assert(offset >= 0 && offset < 65536 * 8);
+    if (offset==24576) {
+        memset(regs.data, 0, 8 * 65536);
+        pkt->makeAtomicResponse();
+        return 0;
+    }
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
-        *reinterpret_cast<uint32_t *>((void*)regs + offset) =
+        *reinterpret_cast<uint32_t *>((void*)regs.data + offset) =
             pkt->getLE<uint32_t>();
         break;
       case sizeof(uint64_t):
-        *reinterpret_cast<uint64_t *>((void*)regs + offset) =
+        *reinterpret_cast<uint64_t *>((void*)regs.data + offset) =
             pkt->getLE<uint64_t>();
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());

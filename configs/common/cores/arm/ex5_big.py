@@ -150,23 +150,23 @@ class ex5_big(DerivO3CPU):
     branchPred = ex5_big_BP()
 
 class L1Cache(Cache):
-    tag_latency = 2
-    data_latency = 2
-    response_latency = 2
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
     tgts_per_mshr = 8
     # Consider the L2 a victim cache also for clean lines
     writeback_clean = True
 
 # Instruction Cache
 class L1I(L1Cache):
-    mshrs = 2
+    mshrs = 16
     size = '32kB'
     assoc = 2
     is_read_only = True
 
 # Data Cache
 class L1D(L1Cache):
-    mshrs = 6
+    mshrs = 16
     size = '32kB'
     assoc = 2
     write_buffers = 16
@@ -177,7 +177,7 @@ class WalkCache(Cache):
     tag_latency = 4
     data_latency = 4
     response_latency = 4
-    mshrs = 6
+    mshrs = 16
     tgts_per_mshr = 8
     size = '1kB'
     assoc = 8
@@ -188,17 +188,17 @@ class WalkCache(Cache):
 
 # L2 Cache
 class L2(Cache):
-    tag_latency = 15
-    data_latency = 15
-    response_latency = 15
-    mshrs = 16
-    tgts_per_mshr = 8
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
+    mshrs = 128
+    tgts_per_mshr = 1
     size = '2MB'
     assoc = 16
-    write_buffers = 8
+    write_buffers = 16
     prefetch_on_access = True
     clusivity = 'mostly_excl'
     # Simple stride prefetcher
-    prefetcher = StridePrefetcher(degree=8, latency = 1)
+    prefetcher = DCPTPrefetcher()
     tags = BaseSetAssoc()
     replacement_policy = RandomRP()

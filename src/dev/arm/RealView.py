@@ -1077,7 +1077,7 @@ Interrupts:
         if hasattr(self, 'smmu'):
             m5.fatal("A SMMU has already been instantiated\n")
 
-        self.smmu = SMMUv3(reg_map=AddrRange(0x2b400000, size=0x00040000))
+        self.smmu = SMMUv3(reg_map=AddrRange(0x2b400000, size=0x00020000))
 
         dma_ports = []
         for dev in devices:

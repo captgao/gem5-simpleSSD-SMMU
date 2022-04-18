@@ -57,6 +57,9 @@ class L1Cache(Cache):
     response_latency = 2
     mshrs = 4
     tgts_per_mshr = 20
+    prefetcher=DCPTPrefetcher(
+        queue_size=64,
+        latency=1.0)
 
 class L1_ICache(L1Cache):
     is_read_only = True
@@ -68,12 +71,15 @@ class L1_DCache(L1Cache):
 
 class L2Cache(Cache):
     assoc = 8
-    tag_latency = 20
-    data_latency = 20
-    response_latency = 20
-    mshrs = 20
+    tag_latency = 10
+    data_latency = 10
+    response_latency = 10
+    mshrs = 32
     tgts_per_mshr = 12
     write_buffers = 8
+    prefetcher=DCPTPrefetcher(
+        queue_size=64,
+        latency=1.0)
 
 class IOCache(Cache):
     assoc = 8

@@ -1377,24 +1377,27 @@ class HPI_DCache(Cache):
     data_latency = 1
     tag_latency = 1
     response_latency = 1
-    mshrs = 4
-    tgts_per_mshr = 8
-    size = '32kB'
+    mshrs = 32
+    tgts_per_mshr = 16
+    size = '128kB'
     assoc = 4
-    write_buffers = 4
-    prefetcher = StridePrefetcher(
-        queue_size=4,
-        degree=4)
+    write_buffers = 8
+    prefetcher = DCPTPrefetcher(
+        queue_size=64,
+        latency=1.0)
 
 class HPI_L2(Cache):
-    data_latency = 13
-    tag_latency = 13
-    response_latency = 5
-    mshrs = 4
-    tgts_per_mshr = 8
-    size = '1024kB'
+    data_latency = 1
+    tag_latency = 1
+    response_latency = 1
+    mshrs = 32
+    tgts_per_mshr = 16
+    size = '2048kB'
     assoc = 16
     write_buffers = 16
+    prefetcher = DCPTPrefetcher(
+        queue_size=64,
+        latency=1.0)
     # prefetcher FIXME
 
 class HPI(MinorCPU):

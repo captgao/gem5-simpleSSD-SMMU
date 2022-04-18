@@ -79,7 +79,7 @@ class DRAMCtrl(QoSMemCtrl):
     port = SlavePort("Slave port")
 
     control = SlavePort('Control port for accessing memory-mapped registers')
-    
+
     reg_map = Param.AddrRange(AddrRange(0x2b800000, size=0x00800000)
         ,'Address range for control registers')
 
@@ -87,8 +87,8 @@ class DRAMCtrl(QoSMemCtrl):
     # that each entry corresponds to a burst for the specific DRAM
     # configuration (e.g. x32 with burst length 8 is 32 bytes) and not
     # the cacheline size or request/packet size
-    write_buffer_size = Param.Unsigned(64, "Number of write queue entries")
-    read_buffer_size = Param.Unsigned(32, "Number of read queue entries")
+    write_buffer_size = Param.Unsigned(1024, "Number of write queue entries")
+    read_buffer_size = Param.Unsigned(1024, "Number of read queue entries")
 
     # threshold in percent for when to forcefully trigger writes and
     # start emptying the write buffer
