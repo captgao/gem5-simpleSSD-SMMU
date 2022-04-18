@@ -1189,8 +1189,8 @@ class DRAMCtrl : public QoS::MemCtrl
       uint64_t data[65536];
       struct {
         uint64_t traffic[8192];
-        uint64_t virtualTime_pid[8192];
-        uint64_t virtualTime_coreId[4];
+        long virtualTime_pid[8192];
+        long virtualTime_coreId[4];
         uint64_t pid_coreId[4];
       };
     } regs;

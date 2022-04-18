@@ -396,6 +396,7 @@ DRAMCtrl::decodeAddr(const PacketPtr pkt, Addr dramPktAddr, unsigned size,
     // ready time set to the current tick, the latter will be updated
     // later
     uint16_t bank_id = banksPerRank * rank + bank;
+
     return new DRAMPacket(pkt, isRead, rank, bank, row, bank_id, dramPktAddr,
                           size, ranks[rank]->banks[bank], *ranks[rank]);
 }
@@ -622,12 +623,14 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
         regs.traffic[index] += pkt->getSize();
-        std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl;
+        if(regs.traffic[index] % 16384 = 0)
+            std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl;
     }
 
-    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
-        std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
-            << " masterId " << pkt->req->masterId() << std::endl;
+    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        // std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
+        //     << " masterId " << pkt->req->masterId() << std::endl;
+    }
     else if (pkt->req->coreId != -1) {
         // std::cout << "dram_ctrl.cc: coreId"
         //  << pkt->req->coreId << " 0x"
