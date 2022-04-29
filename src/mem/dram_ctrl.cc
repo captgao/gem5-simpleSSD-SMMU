@@ -623,7 +623,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
         regs.traffic[index] += pkt->getSize();
-        if(regs.traffic[index] % 16384 = 0)
+        if(regs.traffic[index] % 16384 == 0)
             std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl;
     }
 
@@ -677,7 +677,7 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         if (writeQueueFull(dram_pkt_count)) {
             DPRINTF(DRAM, "Write queue full, not accepting\n");
             // remember that we have to retry this port
-            std::cout << "DRAMCtrl: write queue full" << std::endl;
+            // std::cout << "DRAMCtrl: write queue full" << std::endl;
             retryWrReq = true;
             stats.numWrRetry++;
             return false;
@@ -1494,6 +1494,8 @@ DRAMCtrl::processNextReqEvent()
 
                 if (to_read != queue->end()) {
                     // candidate read found
+                    if(prio != 0)
+                        cout << "read break at prio " << (int)prio << endl;
                     read_found = true;
                     break;
                 }
@@ -1576,6 +1578,8 @@ DRAMCtrl::processNextReqEvent()
                                   switched_cmd_type ? std::min(tRTW, tCS) : 0);
 
             if (to_write != queue->end()) {
+                if(prio != 0)
+                    cout << "write break at " << (int)prio << endl;
                 write_found = true;
                 break;
             }
@@ -2765,9 +2769,6 @@ void
 DRAMCtrl::recvFunctional(PacketPtr pkt)
 {
     // rely on the abstract memory
-    std::cout << "DRAMCtrl::recvFunctional "
-    << this->_system->getMasterName(pkt->req->masterId())
-    << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
@@ -2872,10 +2873,6 @@ void
 DRAMCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
 {
     pkt->pushLabel(memory.name());
-    std::cout << "DRAMCtrl::MemoryPort::recvFunctional "
-     << name() << " "
-     << getPeer()
-     << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
