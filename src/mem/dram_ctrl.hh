@@ -624,6 +624,8 @@ class DRAMCtrl : public QoS::MemCtrl
         /** When will request leave the controller */
         Tick readyTime;
 
+        Tick virtualTime;
+
         /** This comes from the outside world */
         const PacketPtr pkt;
 
@@ -718,6 +720,17 @@ class DRAMCtrl : public QoS::MemCtrl
                    uint32_t _row, uint16_t bank_id, Addr _addr,
                    unsigned int _size, Bank& bank_ref, Rank& rank_ref)
             : entryTime(curTick()), readyTime(curTick()), pkt(_pkt),
+              _masterId(pkt->masterId()),
+              read(is_read), rank(_rank), bank(_bank), row(_row),
+              bankId(bank_id), addr(_addr), size(_size), burstHelper(NULL),
+              bankRef(bank_ref), rankRef(rank_ref), _qosValue(_pkt->qosValue())
+        { }
+
+        DRAMPacket(PacketPtr _pkt, bool is_read, uint8_t _rank, uint8_t _bank,
+                   uint32_t _row, uint16_t bank_id, Addr _addr,
+                   unsigned int _size, Bank& bank_ref, Rank& rank_ref, Tick virtualOffset)
+            : entryTime(curTick()), readyTime(curTick()), 
+              virtualTime(curTick() + virtualOffset), pkt(_pkt),
               _masterId(pkt->masterId()),
               read(is_read), rank(_rank), bank(_bank), row(_row),
               bankId(bank_id), addr(_addr), size(_size), burstHelper(NULL),

@@ -204,7 +204,11 @@ DRAMCtrl::init()
     } else {
         port.sendRangeChange();
     }
-
+    if (!regPort.isConnected()) {
+        fatal("DRAMCtrl %s regport is unconnected!\n", name());
+    } else {
+        regPort.sendRangeChange();
+    }
     // a bit of sanity checks on the interleaving, save it for here to
     // ensure that the system pointer is initialised
     if (range.interleaved()) {
@@ -396,9 +400,14 @@ DRAMCtrl::decodeAddr(const PacketPtr pkt, Addr dramPktAddr, unsigned size,
     // ready time set to the current tick, the latter will be updated
     // later
     uint16_t bank_id = banksPerRank * rank + bank;
-
+    Tick offset = 0;
+    if(pkt->req->coreId != -1) {
+        offset = regs.virtualTime_coreId[pkt->req->coreId];
+    } else if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        offset = regs.virtualTime_pid[pkt->req->substreamId()];
+    }
     return new DRAMPacket(pkt, isRead, rank, bank, row, bank_id, dramPktAddr,
-                          size, ranks[rank]->banks[bank], *ranks[rank]);
+                          size, ranks[rank]->banks[bank], *ranks[rank], offset);
 }
 
 void
@@ -475,6 +484,10 @@ DRAMCtrl::addToReadQueue(PacketPtr pkt, unsigned int pktCount)
             DPRINTF(DRAM, "Adding to read queue\n");
 
             readQueue[dram_pkt->qosValue()].push_back(dram_pkt);
+            std::sort(readQueue[dram_pkt->qosValue()].begin(), readQueue[dram_pkt->qosValue()].end(),
+                [](const DRAMPacket *a, const DRAMPacket *b){
+                    return a->virtualTime > b->virtualTime;
+                });
 
             ++dram_pkt->rankRef.readEntries;
 
@@ -542,6 +555,10 @@ DRAMCtrl::addToWriteQueue(PacketPtr pkt, unsigned int pktCount)
             DPRINTF(DRAM, "Adding to write queue\n");
 
             writeQueue[dram_pkt->qosValue()].push_back(dram_pkt);
+            std::sort(writeQueue[dram_pkt->qosValue()].begin(), writeQueue[dram_pkt->qosValue()].end(),
+                [](const DRAMPacket *a, const DRAMPacket *b){
+                    return a->virtualTime > b->virtualTime;
+                });
             isInWriteQueue.insert(burstAlign(addr));
 
             // log packet
@@ -2910,9 +2927,14 @@ DRAMCtrl::readControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-
     void* reg_ptr = (void*)regs.data + offset;
-
+    cout << "DRAMCtrl::writeControl " 
+        << hex 
+        << pkt->getAddr() 
+        << dec
+        << " Data "
+        << *reinterpret_cast<uint64_t *>(reg_ptr)
+        << endl;
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
         pkt->setLE<uint32_t>(*reinterpret_cast<uint32_t *>(reg_ptr));
@@ -2933,7 +2955,14 @@ DRAMCtrl::writeControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-    if (offset==24576) {
+    cout << "DRAMCtrl::writeControl " 
+        << hex 
+        << pkt->getAddr() 
+        << dec 
+        << " Data " 
+        << pkt->getLE<uint64_t>() 
+        << endl;
+    if (offset==24576 * 8) {
         memset(regs.data, 0, 8 * 65536);
         pkt->makeAtomicResponse();
         return 0;
