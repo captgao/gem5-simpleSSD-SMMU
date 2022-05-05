@@ -179,7 +179,8 @@ def config_mem(options, system):
                 mem_ctrl.latency = '1ns'
                 print("For elastic trace, over-riding Simple Memory "
                     "latency to 1ns.")
-            mem_ctrl.control = system.iobus.master
+            print("connect control port to membus.master")
+            mem_ctrl.control = system.membus.master
             mem_ctrls.append(mem_ctrl)
 
     subsystem.mem_ctrls = mem_ctrls

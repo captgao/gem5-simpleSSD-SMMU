@@ -197,7 +197,8 @@ def build_test_system(np, simplessd):
             if buildEnv['TARGET_ISA'] in "arm":
                 if options.machine_type == "VExpress_GEM5_V1":
                     test_sys.iobridge = Bridge(delay='50ns',
-                                               ranges=[gicv2m_range])
+                                               ranges=[gicv2m_range, AddrRange(0x2b800000, size=0x00800000)])
+                    
                     test_sys.iobridge.slave = test_sys.iobus.master
                     test_sys.iobridge.master = test_sys.membus.slave
 
@@ -208,7 +209,8 @@ def build_test_system(np, simplessd):
             if buildEnv['TARGET_ISA'] in "arm":
                 if options.machine_type == "VExpress_GEM5_V1":
                     mem_ranges.append(gicv2m_range)
-
+                    
+            
             test_sys.iobridge = Bridge(delay='50ns', ranges=mem_ranges)
             test_sys.iobridge.slave = test_sys.iobus.master
             test_sys.iobridge.master = test_sys.membus.slave

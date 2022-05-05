@@ -638,10 +638,22 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
              "Should only see read and writes at memory controller\n");
 
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        int index = pkt->req->substreamId() % 8192;
-        regs.traffic[index] += pkt->getSize();
-        if(regs.traffic[index] % 16384 == 0)
-            std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl;
+        int pid = pkt->req->substreamId() % 8192;
+        regs.traffic[pid] += pkt->getSize();
+        if(regs.traffic[pid] % 65536 == 0) {
+            cout << "pid " << pid << " traffic " << regs.traffic[pid] 
+             << " by dma" << endl;
+        }
+    }
+    else if(pkt->req->coreId != -1) {
+        uint64_t pid = regs.pid_coreId[pkt->req->coreId] % 8192;
+        //if(pid != 0){
+            regs.traffic[pid] += pkt->getSize();
+            if(regs.traffic[pid] % 65536 == 0) {
+                cout << "pid " << pid << " traffic " << regs.traffic[pid] 
+                 << " by cpu"<< endl;
+            }
+        //}
     }
 
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
@@ -2928,7 +2940,7 @@ DRAMCtrl::readControl(PacketPtr pkt)
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
     void* reg_ptr = (void*)regs.data + offset;
-    cout << "DRAMCtrl::writeControl " 
+    cout << "DRAMCtrl::readControl " 
         << hex 
         << pkt->getAddr() 
         << dec
@@ -2975,6 +2987,7 @@ DRAMCtrl::writeControl(PacketPtr pkt)
       case sizeof(uint64_t):
         *reinterpret_cast<uint64_t *>((void*)regs.data + offset) =
             pkt->getLE<uint64_t>();
+        break;
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
         break;
