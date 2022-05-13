@@ -650,8 +650,8 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         //if(pid != 0){
             regs.traffic[pid] += pkt->getSize();
             if(regs.traffic[pid] % 65536 == 0) {
-                cout << "pid " << pid << " traffic " << regs.traffic[pid] 
-                 << " by cpu"<< endl;
+                // cout << "pid " << pid << " traffic " << regs.traffic[pid] 
+                //  << " by cpu"<< endl;
             }
         //}
     }
@@ -2940,13 +2940,13 @@ DRAMCtrl::readControl(PacketPtr pkt)
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
     void* reg_ptr = (void*)regs.data + offset;
-    cout << "DRAMCtrl::readControl " 
-        << hex 
-        << pkt->getAddr() 
-        << dec
-        << " Data "
-        << *reinterpret_cast<uint64_t *>(reg_ptr)
-        << endl;
+    // cout << "DRAMCtrl::readControl " 
+    //     << hex 
+    //     << pkt->getAddr() 
+    //     << dec
+    //     << " Data "
+    //     << *reinterpret_cast<uint64_t *>(reg_ptr)
+    //     << endl;
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
         pkt->setLE<uint32_t>(*reinterpret_cast<uint32_t *>(reg_ptr));
@@ -2967,13 +2967,13 @@ DRAMCtrl::writeControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-    cout << "DRAMCtrl::writeControl " 
-        << hex 
-        << pkt->getAddr() 
-        << dec 
-        << " Data " 
-        << pkt->getLE<uint64_t>() 
-        << endl;
+    // cout << "DRAMCtrl::writeControl " 
+    //     << hex 
+    //     << pkt->getAddr() 
+    //     << dec 
+    //     << " Data " 
+    //     << pkt->getLE<uint64_t>() 
+    //     << endl;
     if (offset==24576 * 8) {
         memset(regs.data, 0, 8 * 65536);
         pkt->makeAtomicResponse();

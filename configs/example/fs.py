@@ -148,6 +148,9 @@ def build_test_system(np, simplessd):
     test_sys.cpu = [TestCPUClass(clk_domain=test_sys.cpu_clk_domain, cpu_id=i)
                     for i in range(np)]
 
+
+        
+
     if ObjectList.is_kvm_cpu(TestCPUClass) or \
         ObjectList.is_kvm_cpu(FutureClass):
         test_sys.kvm_vm = KvmVM()
@@ -262,6 +265,18 @@ def build_test_system(np, simplessd):
                 lapics.append(test_sys.cpu[i].interrupts[0])
 
             test_sys.msi_handler.lapics = lapics
+
+    if buildEnv['TARGET_ISA'] == "arm":
+        for cpu in test_sys.cpu:
+            print("for cpu")
+            for isa in cpu.isa:
+                print("add pmu")
+                isa.pmu = ArmPMU(interrupt=ArmPPI(num=20))
+                isa.pmu.addArchEvents(
+                    cpu=cpu, dtb=cpu.dtb, itb=cpu.itb,
+                    icache=getattr(cpu, "icache", None),
+                    dcache=getattr(cpu, "dcache", None),
+                    l2cache=getattr(test_sys, "l2", None))
 
     return test_sys
 
