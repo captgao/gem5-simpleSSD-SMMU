@@ -268,9 +268,7 @@ def build_test_system(np, simplessd):
 
     if buildEnv['TARGET_ISA'] == "arm":
         for cpu in test_sys.cpu:
-            print("for cpu")
             for isa in cpu.isa:
-                print("add pmu")
                 isa.pmu = ArmPMU(interrupt=ArmPPI(num=20))
                 isa.pmu.addArchEvents(
                     cpu=cpu, dtb=cpu.dtb, itb=cpu.itb,
