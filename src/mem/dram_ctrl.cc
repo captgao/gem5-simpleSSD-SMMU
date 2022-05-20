@@ -274,18 +274,6 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
-    //std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << " "  << this->_system->getMasterName(pkt->masterId()) << std::endl;
-    // if (pkt->masterId() == 0) {
-    //     void *array[10];
-    //     size_t btsize = backtrace(array,10);
-    //     backtrace_symbols_fd(array, btsize, 1);
-    // }
-    // if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
-    //     std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
-    // else if (pkt->req->coreId != -1)
-    //     std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
-    // else
-    //     std::cout << "i";
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
         regs.traffic[index] += pkt->getSize();
@@ -649,37 +637,14 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         uint64_t pid = regs.pid_coreId[pkt->req->coreId] % 8192;
         //if(pid != 0){
             regs.traffic[pid] += pkt->getSize();
-            if(regs.traffic[pid] % 65536 == 0) {
-                // cout << "pid " << pid << " traffic " << regs.traffic[pid] 
-                //  << " by cpu"<< endl;
+            if(regs.traffic[pid] % 65536 == 0 && pid != 0) {
+                cout << "pid " << pid << " traffic " << regs.traffic[pid] 
+                 << " by cpu " << pkt->req->coreId << endl;
             }
         //}
     }
-
-    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        // std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
-        //     << " masterId " << pkt->req->masterId() << std::endl;
-    }
-    else if (pkt->req->coreId != -1) {
-        // std::cout << "dram_ctrl.cc: coreId"
-        //  << pkt->req->coreId << " 0x"
-        //  << std::hex << pkt->req->getPaddr() << std::dec
-        //  << std::endl;
-    }
     else {
-        // std::cout << "MasterId" << pkt->req->masterId()
-        //     << this->_system->getMasterName(pkt->req->masterId())
-        //     << " " << std::hex << pkt->req->getPaddr() << std::dec
-        //     << std::endl;
-        if (pkt->req->masterId() == 0) {
-            // std::cout << "MasterId" << pkt->req->masterId()
-            //     << this->_system->getMasterName(pkt->req->masterId())
-            //     << " " << std::hex << pkt->req->getPaddr() << std::dec
-            //     << std::endl;
-            // void *array[10];
-            // size_t btsize = backtrace(array,10);
-            // backtrace_symbols_fd(array, btsize, 1);
-        }
+        // cout << "unaccounted traffic " << endl;
     }
 
     // Calc avg gap between requests
