@@ -243,10 +243,6 @@ void
 BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
                                Tick forward_time, Tick request_time)
 {
-    // std::cout << "BaseCache::handleTimingReqMiss "
-    //     << pkt->req->coreId << " 0x"
-    //     << std::hex << pkt->req->getPaddr() << std::dec
-    //     << std::endl;
     if (writeAllocator &&
         pkt && pkt->isWrite() && !pkt->req->isUncacheable()) {
         writeAllocator->updateMode(pkt->getAddr(), pkt->getSize(),
@@ -344,19 +340,6 @@ BaseCache::recvTimingReq(PacketPtr pkt)
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
     Tick forward_time = clockEdge(forwardLatency) + pkt->headerDelay;
-    if (name().find("system.cpu") == std::string::npos) {
-        // std::cout << "*************BaseCache::
-        // recvTimingReq*************" << std::endl
-        // << name() << " 0x"
-        // << std::hex << pkt->req->getPaddr() << std::dec
-        // << std::endl;
-    }
-    // std::cout << "BaseCache::recvTimingReq "
-    //     << name() << " 0x"
-    //     << std::hex
-    //     << pkt->req->getPaddr()
-    //     << std::dec << " coreId "
-    //     << pkt->req->coreId << std::endl;
     Cycles lat;
     CacheBlk *blk = nullptr;
     bool satisfied = false;
@@ -436,8 +419,6 @@ void
 BaseCache::recvTimingResp(PacketPtr pkt)
 {
     assert(pkt->isResponse());
-    // std::cout << "coreId " << pkt->req->coreId << " 0x"
-    //     << std::hex << pkt->req->getPaddr() << std::dec << std::endl;
     // all header delay should be paid for by the crossbar, unless
     // this is a prefetch response from above
     panic_if(pkt->headerDelay != 0 && pkt->cmd != MemCmd::HardPFResp,
@@ -568,7 +549,12 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         for (auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->coreId = pkt->req->coreId;
         }
-    } else if (pkt->req->masterId() >= 3 && pkt->req->masterId() < 19) {
+    }   else if(pkt->req->hasSubstreamId()) {
+        for (auto it = writebacks.begin(); it!= writebacks.end(); it++) {
+            (*it)->req->setSubStreamId(pkt->req->substreamId());
+        } 
+    } 
+    else if (pkt->req->masterId() >= 3 && pkt->req->masterId() < 19) {
         int coreId = (pkt->req->masterId() - 3) / 4;
         for (auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->coreId = coreId;
@@ -2478,13 +2464,6 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
 {
     // sanity check
     assert(!waitingOnRetry);
-    // std::cout
-    //     << "+++++++++++++"
-    //     << "BaseCache::CacheReqPacketQueue::sendDeferredPacket"
-    //     << "+++++++++++++"
-    //     << std::endl
-    //     << name()
-    //     << std::endl;
     // there should never be any deferred request packets in the
     // queue, instead we resly on the cache to provide the packets
     // from the MSHR queue or write queue
@@ -2503,11 +2482,6 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
         if (checkConflictingSnoop(entry->getTarget()->pkt)) {
             return;
         }
-        // std::cout << "pkt coreId "
-        //     << entry->getTarget()->pkt->req->coreId
-        //     << " 0x" << std::hex
-        //     << entry->getTarget()->pkt->req->getPaddr()
-        //     << std::dec << std::endl;
         waitingOnRetry = entry->sendPacket(cache);
     }
 
@@ -2518,11 +2492,6 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
     if (!waitingOnRetry) {
         schedSendEvent(cache.nextQueueReadyTime());
     }
-    // std::cout
-    //     << "+++++++++++++"
-    //     << "BaseCache::CacheReqPacketQueue::sendDeferredPacket END"
-    //     << "+++++++++++++"
-    //     << std::endl;
 }
 
 BaseCache::MemSidePort::MemSidePort(const std::string &_name,

@@ -518,7 +518,8 @@ class Request
           translateDelta(other.translateDelta),
           accessDelta(other.accessDelta), depth(other.depth)
     {
-
+        if(other.hasSubstreamId())
+            setSubStreamId(other.substreamId());
         atomicOpFunctor.reset(other.atomicOpFunctor ?
                                 other.atomicOpFunctor->clone() : nullptr);
     }

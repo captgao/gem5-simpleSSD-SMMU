@@ -435,6 +435,9 @@ QueuedPrefetcher::insert(const PacketPtr &pkt, PrefetchInfo &new_pfi,
         DPRINTF(HWPrefetch, "Prefetch queued. "
                 "addr:%#x priority: %3d tick:%lld.\n",
                 new_pfi.getAddr(), priority, pf_time);
+        dpp.pkt->req->coreId = pkt->req->coreId;
+        if(pkt->req->hasSubstreamId())
+            dpp.pkt->req->setSubStreamId(pkt->req->substreamId());
         addToQueue(pfq, dpp);
     } else {
         // Add the translation request and try to resolve it later
@@ -442,6 +445,9 @@ QueuedPrefetcher::insert(const PacketPtr &pkt, PrefetchInfo &new_pfi,
         dpp.tc = cache->system->getThreadContext(translation_req->contextId());
         DPRINTF(HWPrefetch, "Prefetch queued with no translation. "
                 "addr:%#x priority: %3d\n", new_pfi.getAddr(), priority);
+        dpp.pkt->req->coreId = pkt->req->coreId;
+        if(pkt->req->hasSubstreamId())
+            dpp.pkt->req->setSubStreamId(pkt->req->substreamId());
         addToQueue(pfqMissingTranslation, dpp);
     }
 }

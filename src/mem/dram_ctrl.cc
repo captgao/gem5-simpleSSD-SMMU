@@ -637,14 +637,20 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         uint64_t pid = regs.pid_coreId[pkt->req->coreId] % 8192;
         //if(pid != 0){
             regs.traffic[pid] += pkt->getSize();
-            if(regs.traffic[pid] % 65536 == 0 && pid != 0) {
-                cout << "pid " << pid << " traffic " << regs.traffic[pid] 
-                 << " by cpu " << pkt->req->coreId << endl;
-            }
+            // if(regs.traffic[pid] % 65536 == 0) {
+            //     cout << "pid " << pid << " traffic " << regs.traffic[pid] 
+            //      << " by cpu " << pkt->req->coreId << endl;
+            // }
         //}
     }
     else {
-        // cout << "unaccounted traffic " << endl;
+        if(pkt->req->masterId() > 26) {
+           cout << "masterId " << pkt->req->masterId() << system()->getMasterName(pkt->req->masterId()) <<
+            " size " << pkt->getSize() << " addr " << std::hex << pkt->req->getPaddr() << std::dec << endl;
+            void *array[10];
+            size_t btsize = backtrace(array,10);
+            backtrace_symbols_fd(array, btsize, 1);
+        }
     }
 
     // Calc avg gap between requests

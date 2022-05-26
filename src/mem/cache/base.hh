@@ -1121,13 +1121,6 @@ class BaseCache : public ClockedObject
     {
         // should only see writes or clean evicts here
         assert(pkt->isWrite() || pkt->cmd == MemCmd::CleanEvict);
-        // std::cout << "allocalteWriteBuffer" << pkt->req->coreId
-        //     <<std::hex<<" 0x" <<pkt->req->getPaddr() << std::dec<<std::endl;
-        if (pkt->req->coreId == -1) {
-            // void *array[5];
-            // size_t btsize = backtrace(array,5);
-            // backtrace_symbols_fd(array, btsize, 1);
-        }
         Addr blk_addr = pkt->getBlockAddr(blkSize);
 
         // If using compression, on evictions the block is decompressed and
