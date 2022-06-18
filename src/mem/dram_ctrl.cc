@@ -474,7 +474,7 @@ DRAMCtrl::addToReadQueue(PacketPtr pkt, unsigned int pktCount)
             readQueue[dram_pkt->qosValue()].push_back(dram_pkt);
             std::sort(readQueue[dram_pkt->qosValue()].begin(), readQueue[dram_pkt->qosValue()].end(),
                 [](const DRAMPacket *a, const DRAMPacket *b){
-                    return a->virtualTime > b->virtualTime;
+                    return a->virtualTime < b->virtualTime;
                 });
 
             ++dram_pkt->rankRef.readEntries;
@@ -545,7 +545,7 @@ DRAMCtrl::addToWriteQueue(PacketPtr pkt, unsigned int pktCount)
             writeQueue[dram_pkt->qosValue()].push_back(dram_pkt);
             std::sort(writeQueue[dram_pkt->qosValue()].begin(), writeQueue[dram_pkt->qosValue()].end(),
                 [](const DRAMPacket *a, const DRAMPacket *b){
-                    return a->virtualTime > b->virtualTime;
+                    return a->virtualTime < b->virtualTime;
                 });
             isInWriteQueue.insert(burstAlign(addr));
 
@@ -644,13 +644,6 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         //}
     }
     else {
-        if(pkt->req->masterId() > 26) {
-           cout << "masterId " << pkt->req->masterId() << system()->getMasterName(pkt->req->masterId()) <<
-            " size " << pkt->getSize() << " addr " << std::hex << pkt->req->getPaddr() << std::dec << endl;
-            void *array[10];
-            size_t btsize = backtrace(array,10);
-            backtrace_symbols_fd(array, btsize, 1);
-        }
     }
 
     // Calc avg gap between requests

@@ -397,10 +397,6 @@ BaseCache::recvTimingReq(PacketPtr pkt)
             schedMemSideSendEvent(next_pf_time);
         }
     }
-    // if (name().find("system.cpu") == std::string::npos)
-    //     std::cout <<
-    // "*************BaseCache::recvTimingReq END*************"
-    // << std::endl;
 }
 
 void

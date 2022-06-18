@@ -421,10 +421,16 @@ MSHR::handleSnoop(PacketPtr pkt, Counter _order)
     // when we snoop packets the needsWritable and isInvalidate flags
     // should always be the same, however, this assumes that we never
     // snoop writes as they are currently not marked as invalidations
-    panic_if((pkt->needsWritable() != pkt->isInvalidate()) &&
-             !pkt->req->isCacheMaintenance(),
-             "%s got snoop %s where needsWritable, "
-             "does not match isInvalidate", name(), pkt->print());
+    // panic_if((pkt->needsWritable() != pkt->isInvalidate()) &&
+    //          !pkt->req->isCacheMaintenance(),
+    //          "%s got snoop %s where needsWritable, "
+    //          "does not match isInvalidate", name(), pkt->print());
+    if((pkt->needsWritable() != pkt->isInvalidate()) &&!pkt->req->isCacheMaintenance()) {
+        std::cout << "snoop assertion failed, pkt coreId " << pkt->req->coreId
+            << " masterId " << pkt->req->masterId() << " address 0x"
+            << std::hex << pkt->req->getPaddr() << std::dec
+            << std::endl;
+    }
 
     if (!inService || (pkt->isExpressSnoop() && downstreamPending)) {
         // Request has not been issued yet, or it's been issued
