@@ -390,7 +390,7 @@ DRAMCtrl::decodeAddr(const PacketPtr pkt, Addr dramPktAddr, unsigned size,
     uint16_t bank_id = banksPerRank * rank + bank;
     Tick offset = 0;
     if(pkt->req->coreId != -1) {
-        offset = regs.virtualTime_coreId[pkt->req->coreId];
+        offset = regs.virtualTime_pid[regs.pid_coreId[pkt->req->coreId]];
     } else if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         offset = regs.virtualTime_pid[pkt->req->substreamId()];
     }
@@ -628,10 +628,10 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int pid = pkt->req->substreamId() % 8192;
         regs.traffic[pid] += pkt->getSize();
-        if(regs.traffic[pid] % 65536 == 0) {
-            cout << "pid " << pid << " traffic " << regs.traffic[pid] 
-             << " by dma" << endl;
-        }
+        // if(regs.traffic[pid] % 65536 == 0) {
+        //     cout << "pid " << pid << " traffic " << regs.traffic[pid] 
+        //      << " by dma" << endl;
+        // }
     }
     else if(pkt->req->coreId != -1) {
         uint64_t pid = regs.pid_coreId[pkt->req->coreId] % 8192;
@@ -2903,14 +2903,12 @@ DRAMCtrl::readControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
+    if(offset >= 0 && offset < 65536) {
+        int pid = offset/8;
+        if(regs.traffic[pid] != 0)
+        cout << "Read pid " << pid << " Traffic " << regs.traffic[pid] << " at Tick " << curTick() << endl;
+    }
     void* reg_ptr = (void*)regs.data + offset;
-    // cout << "DRAMCtrl::readControl " 
-    //     << hex 
-    //     << pkt->getAddr() 
-    //     << dec
-    //     << " Data "
-    //     << *reinterpret_cast<uint64_t *>(reg_ptr)
-    //     << endl;
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
         pkt->setLE<uint32_t>(*reinterpret_cast<uint32_t *>(reg_ptr));
@@ -2931,18 +2929,7 @@ DRAMCtrl::writeControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-    // cout << "DRAMCtrl::writeControl " 
-    //     << hex 
-    //     << pkt->getAddr() 
-    //     << dec 
-    //     << " Data " 
-    //     << pkt->getLE<uint64_t>() 
-    //     << endl;
-    if (offset==24576 * 8) {
-        memset(regs.data, 0, 8 * 65536);
-        pkt->makeAtomicResponse();
-        return 0;
-    }
+    int vt_offset = offset - 65536;
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
         *reinterpret_cast<uint32_t *>((void*)regs.data + offset) =
@@ -2955,6 +2942,17 @@ DRAMCtrl::writeControl(PacketPtr pkt)
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
         break;
+    }
+    if(vt_offset >= 0 && vt_offset < 65536) {
+        cout << "Write virtual time pid " << (vt_offset/8) 
+         << " value " << regs.virtualTime_pid[vt_offset/8] 
+         << " delta " << regs.virtualTime_pid[vt_offset/8]/1500 << endl;
+    }
+    int coreId = offset - 65536 * 2;
+    if(coreId >= 0 && coreId < 32) {
+        cout << "Write virtual core id " << (coreId / 8) 
+         << " value " << regs.virtualTime_coreId[coreId/8] 
+         << " delta " << regs.virtualTime_coreId[coreId/8]/1500 << endl;
     }
     pkt->makeAtomicResponse();
     return 0;
