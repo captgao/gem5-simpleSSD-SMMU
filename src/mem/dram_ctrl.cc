@@ -1393,13 +1393,13 @@ DRAMCtrl::processNextReqEvent()
     } else {
         if(busState == READ) {
             if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime
-                && readsThisTime < READ_SWITCH_CAP) {
+                && readsThisTime > READ_SWITCH_CAP) {
                     busStateNext = WRITE;
             }
         }
         else {
             if(readQueue[0][0]->virtualTime < writeQueue[0][0]->virtualTime
-                && writesThisTime < WRITE_SWITCH_CAP) {
+                && writesThisTime > WRITE_SWITCH_CAP) {
                     busStateNext = READ;
                 }
         }
