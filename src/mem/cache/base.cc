@@ -339,6 +339,14 @@ BaseCache::recvTimingReq(PacketPtr pkt)
 {
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
+
+    // if(system->getMasterName(pkt->masterId()).find("cpu") == string::npos)
+    //     cout << name() << " " << system->getMasterName(pkt->masterId()) << " " 
+    //         << std::hex << pkt->getAddr() << std::dec << endl;
+    // else if(system->getMasterName(pkt->masterId()).find("nvme") != string::npos)
+    //     cout << name() << " " << system->getMasterName(pkt->masterId()) << " " 
+    //         << std::hex << pkt->getAddr() << std::dec 
+    //         << " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0)<< endl;
     Tick forward_time = clockEdge(forwardLatency) + pkt->headerDelay;
     Cycles lat;
     CacheBlk *blk = nullptr;
@@ -382,9 +390,28 @@ BaseCache::recvTimingReq(PacketPtr pkt)
         if (prefetcher && blk && blk->wasPrefetched()) {
             blk->status &= ~BlkHWPrefetched;
         }
+        // if(system->getMasterName(pkt->masterId()).find("cpu") == string::npos)
+        // cout << name() << " hit " << system->getMasterName(pkt->masterId()) << 
+        // " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
+        //  " " << std::hex << pkt->getAddr() << std::dec << endl;
 
+        // else if (system->getMasterName(pkt->masterId()).find("nvme") != string::npos) {
+        //     cout << name() << " hit " << system->getMasterName(pkt->masterId()) <<
+        //     " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
+        //     " " << std::hex << pkt->getAddr() << std::dec << endl;
+        // }
         handleTimingReqHit(pkt, blk, request_time);
     } else {
+        // if(system->getMasterName(pkt->masterId()).find("cpu") == string::npos)
+        // cout << name() << " miss " << system->getMasterName(pkt->masterId()) << 
+        // " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
+        //  " " << std::hex << pkt->getAddr() << std::dec << endl;
+        // else if (system->getMasterName(pkt->masterId()).find("nvme") != string::npos) {
+        //     cout << name() << " miss " << system->getMasterName(pkt->masterId()) <<
+        //     " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
+        //     " " << std::hex << pkt->getAddr() << std::dec << endl;
+        // }
+ 
         handleTimingReqMiss(pkt, blk, forward_time, request_time);
 
         ppMiss->notify(pkt);

@@ -730,7 +730,7 @@ class DRAMCtrl : public QoS::MemCtrl
                    uint32_t _row, uint16_t bank_id, Addr _addr,
                    unsigned int _size, Bank& bank_ref, Rank& rank_ref, Tick virtualOffset)
             : entryTime(curTick()), readyTime(curTick()), 
-              virtualTime(virtualOffset), pkt(_pkt),
+              virtualTime(curTick() + virtualOffset), pkt(_pkt),
               _masterId(pkt->masterId()),
               read(is_read), rank(_rank), bank(_bank), row(_row),
               bankId(bank_id), addr(_addr), size(_size), burstHelper(NULL),
@@ -1237,6 +1237,7 @@ class DRAMCtrl : public QoS::MemCtrl
     Tick recvAtomic(PacketPtr pkt);
     void recvFunctional(PacketPtr pkt);
     bool recvTimingReq(PacketPtr pkt);
+    void print_traffic(PacketPtr pkt, int pid);
 
 };
 

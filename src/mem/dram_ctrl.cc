@@ -277,8 +277,6 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int index = pkt->req->substreamId() % 8192;
         regs.traffic[index] += pkt->getSize();
-        std::cout << "regs[" << index << "] "
-            << regs.traffic[index] << std::endl;
     }
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
@@ -388,7 +386,7 @@ DRAMCtrl::decodeAddr(const PacketPtr pkt, Addr dramPktAddr, unsigned size,
     // ready time set to the current tick, the latter will be updated
     // later
     uint16_t bank_id = banksPerRank * rank + bank;
-    Tick offset = curTick();
+    Tick offset = 0;
     if(pkt->req->coreId != -1) {
         offset = regs.virtualTime_pid[regs.pid_coreId[pkt->req->coreId]];
     } else if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
@@ -474,6 +472,8 @@ DRAMCtrl::addToReadQueue(PacketPtr pkt, unsigned int pktCount)
             readQueue[dram_pkt->qosValue()].push_back(dram_pkt);
             std::sort(readQueue[dram_pkt->qosValue()].begin(), readQueue[dram_pkt->qosValue()].end(),
                 [](const DRAMPacket *a, const DRAMPacket *b){
+                    // if(a->virtualTime == b->virtualTime)
+                    //     return a->entryTime < b->entryTime;
                     return a->virtualTime < b->virtualTime;
                 });
 
@@ -545,8 +545,11 @@ DRAMCtrl::addToWriteQueue(PacketPtr pkt, unsigned int pktCount)
             writeQueue[dram_pkt->qosValue()].push_back(dram_pkt);
             std::sort(writeQueue[dram_pkt->qosValue()].begin(), writeQueue[dram_pkt->qosValue()].end(),
                 [](const DRAMPacket *a, const DRAMPacket *b){
+                    // if(a->virtualTime == b->virtualTime)
+                    //     return a->entryTime < b->entryTime;
                     return a->virtualTime < b->virtualTime;
                 });
+                
             isInWriteQueue.insert(burstAlign(addr));
 
             // log packet
@@ -611,35 +614,58 @@ DRAMCtrl::printQs() const
     }
 #endif // TRACING_ON
 }
-
+static uint64_t total_traffic[8192] = {0};
+static uint64_t traffic_pid_master[1024][40] = {{0}};
+static uint64_t unaccounted_traffic[64] = {0};
+void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
+    total_traffic[pid] += pkt->getSize();
+    traffic_pid_master[pid][pkt->masterId()] += pkt->getSize();
+    if(total_traffic[pid] % 1048576 == 0) {
+        cout << "pid " << pid << " total traffic " 
+        << total_traffic[pid] / 1048576 << "MB" 
+        << " vt " << regs.virtualTime_pid[pid] << endl;
+        for(int i = 0 ;i < 40; i++) {
+            if(traffic_pid_master[pid][i] != 0) {
+                cout << "Master " << system()->getMasterName(i) 
+                    << " " << traffic_pid_master[pid][i] << "Bytes" << endl;
+            }
+        }
+    }
+}
 bool
 DRAMCtrl::recvTimingReq(PacketPtr pkt)
 {
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
-    //std::cout << "dram_ctrl.cc recvTimingReq: " << pkt->req->virtualTime << std::endl;
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
     panic_if(!(pkt->isRead() || pkt->isWrite()),
              "Should only see read and writes at memory controller\n");
-
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
         int pid = pkt->req->substreamId() % 8192;
         regs.traffic[pid] += pkt->getSize();
+        print_traffic(pkt, pid);
     }
     else if(pkt->req->coreId != -1) {
-        uint64_t pid = regs.pid_coreId[pkt->req->coreId] % 8192;
-        //if(pid != 0){
-            regs.traffic[pid] += pkt->getSize();
-            // if(regs.traffic[pid] % 65536 == 0) {
-            //     cout << "pid " << pid << " traffic " << regs.traffic[pid] 
-            //      << " by cpu " << pkt->req->coreId << endl;
-            // }
-        //}
+        int pid = regs.pid_coreId[pkt->req->coreId] % 8192;
+        regs.traffic[pid] += pkt->getSize();
+        print_traffic(pkt, pid);
     }
     else {
+        int masterId = pkt->req->masterId();
+        if(masterId >= 0 && masterId < 64) {
+            unaccounted_traffic[masterId] += pkt->req->getSize();
+            if(unaccounted_traffic[masterId] % 1048576 == 0)
+                cout << "Master " << masterId << " " 
+                << system()->getMasterName(masterId) << " unaccounted traffic "
+                    << unaccounted_traffic[masterId]/1048576 << " MB" << endl;
+        }
+        else {
+            cout << "Large Master " << masterId << " " 
+                << system()->getMasterName(masterId) << endl;
+        }
     }
 
     // Calc avg gap between requests
@@ -1349,7 +1375,8 @@ DRAMCtrl::doDRAMAccess(DRAMPacket* dram_pkt)
             dram_pkt->readyTime - dram_pkt->entryTime;
     }
 }
-
+#define READ_SWITCH_CAP 256
+#define WRITE_SWITCH_CAP 256
 void
 DRAMCtrl::processNextReqEvent()
 {
@@ -1358,15 +1385,24 @@ DRAMCtrl::processNextReqEvent()
     //     // select bus state - only done if QoS algorithms are in use
     //     busStateNext = selectNextBusState();
     // }
+    static int current_direction_time = 0;
     if(readQueue[0].empty()) {
         busStateNext = WRITE;
     } else if(writeQueue[0].empty()) {
         busStateNext = READ;
     } else {
-        if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime) 
-            busStateNext = WRITE;
-        else
-            busStateNext = READ;
+        if(busState == READ) {
+            if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime
+                && readsThisTime < READ_SWITCH_CAP) {
+                    busStateNext = WRITE;
+            }
+        }
+        else {
+            if(readQueue[0][0]->virtualTime < writeQueue[0][0]->virtualTime
+                && writesThisTime < WRITE_SWITCH_CAP) {
+                    busStateNext = READ;
+                }
+        }
     }
     // detect bus state change
     bool switched_cmd_type = (busState != busStateNext);
@@ -2902,15 +2938,12 @@ DRAMCtrlParams::create()
 {
     return new DRAMCtrl(this);
 }
-
+static uint64_t last_read_tick[8192] = {0};
 Tick
 DRAMCtrl::readControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-    if(offset >= 0 && offset < 65536) {
-        int pid = offset/8;
-    }
     void* reg_ptr = (void*)regs.data + offset;
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
@@ -2922,6 +2955,20 @@ DRAMCtrl::readControl(PacketPtr pkt)
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
         break;
+    }
+    if(offset >= 0 && offset < 65536) {
+        int pid = offset / 8;
+        uint64_t traffic = regs.traffic[offset/8];
+        uint64_t interval = curTick() - last_read_tick[pid];
+        last_read_tick[pid] = curTick();
+        uint64_t speed = 953674L * traffic / interval;
+        // if(speed > 0)
+        //     cout << "Read traffic pid " << pid
+        //         << " value " << traffic
+        //         << " at " << curTick()/1000 << "ns " 
+        //         << " speed " << speed << "MB/s"
+        //         << endl;
+        regs.traffic[offset/8] = 0;
     }
     pkt->makeAtomicResponse();
     return 0;
@@ -2946,11 +2993,11 @@ DRAMCtrl::writeControl(PacketPtr pkt)
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
         break;
     }
-    if(vt_offset >= 0 && vt_offset < 65536) {
-        cout << "Write virtual time pid " << (vt_offset/8) 
-         << " value " << regs.virtualTime_pid[vt_offset/8] 
-         << " delta " << regs.virtualTime_pid[vt_offset/8]/1500 << endl;
-    }
+    // if(vt_offset >= 0 && vt_offset < 65536) {
+    //     cout << "Write virtual time pid " << (vt_offset/8) 
+    //      << " value " << regs.virtualTime_pid[vt_offset/8] 
+    //      << " at " << curTick()/1000 << "ns" << endl;
+    // }
     int coreId = offset - 65536 * 2;
     pkt->makeAtomicResponse();
     return 0;
