@@ -387,13 +387,16 @@ DRAMCtrl::decodeAddr(const PacketPtr pkt, Addr dramPktAddr, unsigned size,
     // later
     uint16_t bank_id = banksPerRank * rank + bank;
     Tick offset = 0;
+    int pid = -1;
     if(pkt->req->coreId != -1) {
-        offset = regs.virtualTime_pid[regs.pid_coreId[pkt->req->coreId]];
+        pid = regs.pid_coreId[pkt->req->coreId];
+        offset = regs.virtualTime_pid[pid];
     } else if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        offset = regs.virtualTime_pid[pkt->req->substreamId()];
+        pid = pkt->req->substreamId();
+        offset = regs.virtualTime_pid[pid];
     }
     return new DRAMPacket(pkt, isRead, rank, bank, row, bank_id, dramPktAddr,
-                          size, ranks[rank]->banks[bank], *ranks[rank], offset);
+                          size, ranks[rank]->banks[bank], *ranks[rank], offset, pid);
 }
 
 void
@@ -615,19 +618,27 @@ DRAMCtrl::printQs() const
 #endif // TRACING_ON
 }
 static uint64_t total_traffic[8192] = {0};
-static uint64_t traffic_pid_master[1024][40] = {{0}};
+static uint64_t read_pid_master[1024][40] = {{0}};
+static uint64_t write_pid_master[1024][40] = {{0}};
 static uint64_t unaccounted_traffic[64] = {0};
 void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
     total_traffic[pid] += pkt->getSize();
-    traffic_pid_master[pid][pkt->masterId()] += pkt->getSize();
+    if(pkt->isRead()) {
+        read_pid_master[pid][pkt->masterId()] += pkt->getSize();
+    } else if(pkt->isWrite()) {
+        write_pid_master[pid][pkt->masterId()] += pkt->getSize();
+    }
     if(total_traffic[pid] % 1048576 == 0) {
         cout << "pid " << pid << " total traffic " 
         << total_traffic[pid] / 1048576 << "MB" 
         << " vt " << regs.virtualTime_pid[pid] << endl;
         for(int i = 0 ;i < 40; i++) {
-            if(traffic_pid_master[pid][i] != 0) {
+            if(read_pid_master[pid][i] != 0 ||
+                write_pid_master[pid][i] != 0) {
                 cout << "Master " << system()->getMasterName(i) 
-                    << " " << traffic_pid_master[pid][i] << "Bytes" << endl;
+                    << " R " << read_pid_master[pid][i] 
+                    << " W " << write_pid_master[pid][i]
+                    << endl;
             }
         }
     }
@@ -1375,8 +1386,8 @@ DRAMCtrl::doDRAMAccess(DRAMPacket* dram_pkt)
             dram_pkt->readyTime - dram_pkt->entryTime;
     }
 }
-#define READ_SWITCH_CAP 256
-#define WRITE_SWITCH_CAP 256
+#define READ_SWITCH_CAP 64
+#define WRITE_SWITCH_CAP 64
 void
 DRAMCtrl::processNextReqEvent()
 {
@@ -1390,16 +1401,35 @@ DRAMCtrl::processNextReqEvent()
         busStateNext = WRITE;
     } else if(writeQueue[0].empty()) {
         busStateNext = READ;
-    } else {
+    } else { 
+        // if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime) {
+        //     busStateNext = WRITE;
+        // } else {
+        //     busStateNext = READ;
+        // }
+
+        // if(busState == READ) {
+        //     if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime
+        //         && readsThisTime >= READ_SWITCH_CAP) {
+        //             busStateNext = WRITE;
+        //     }
+        // }
+        // else {
+        //     if(readQueue[0][0]->virtualTime < writeQueue[0][0]->virtualTime
+        //         && writesThisTime >= WRITE_SWITCH_CAP) {
+        //             busStateNext = READ;
+        //         }
+        // }
+
         if(busState == READ) {
             if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime
-                && readsThisTime > READ_SWITCH_CAP) {
+                && writeQueue[0][0]->pid != readQueue[0][0]->pid) {
                     busStateNext = WRITE;
             }
         }
         else {
             if(readQueue[0][0]->virtualTime < writeQueue[0][0]->virtualTime
-                && writesThisTime > WRITE_SWITCH_CAP) {
+                && writeQueue[0][0]->pid != readQueue[0][0]->pid) {
                     busStateNext = READ;
                 }
         }

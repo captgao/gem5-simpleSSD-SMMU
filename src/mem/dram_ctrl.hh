@@ -625,6 +625,7 @@ class DRAMCtrl : public QoS::MemCtrl
         Tick readyTime;
 
         Tick virtualTime;
+        uint32_t pid;
 
         /** This comes from the outside world */
         const PacketPtr pkt;
@@ -728,13 +729,13 @@ class DRAMCtrl : public QoS::MemCtrl
 
         DRAMPacket(PacketPtr _pkt, bool is_read, uint8_t _rank, uint8_t _bank,
                    uint32_t _row, uint16_t bank_id, Addr _addr,
-                   unsigned int _size, Bank& bank_ref, Rank& rank_ref, Tick virtualOffset)
+                   unsigned int _size, Bank& bank_ref, Rank& rank_ref, Tick virtualOffset, uint32_t _pid)
             : entryTime(curTick()), readyTime(curTick()), 
-              virtualTime(curTick() + virtualOffset), pkt(_pkt),
+              virtualTime(curTick() + virtualOffset * 1000), pkt(_pkt),
               _masterId(pkt->masterId()),
               read(is_read), rank(_rank), bank(_bank), row(_row),
               bankId(bank_id), addr(_addr), size(_size), burstHelper(NULL),
-              bankRef(bank_ref), rankRef(rank_ref), _qosValue(_pkt->qosValue())
+              bankRef(bank_ref), rankRef(rank_ref), _qosValue(_pkt->qosValue()),pid(_pid)
         { }
 
     };
