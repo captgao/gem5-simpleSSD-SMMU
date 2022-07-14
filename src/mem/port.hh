@@ -77,7 +77,7 @@ class MasterPort : public Port, public AtomicRequestProtocol,
 {
     friend class SlavePort;
 
-  private:
+  public:
     SlavePort *_slavePort;
 
   protected:
