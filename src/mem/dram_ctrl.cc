@@ -293,6 +293,7 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     return latency;
 }
 
+uint64_t maxReadQueueSize = 0;
 bool
 DRAMCtrl::readQueueFull(unsigned int neededEntries) const
 {
@@ -301,17 +302,33 @@ DRAMCtrl::readQueueFull(unsigned int neededEntries) const
             neededEntries);
 
     auto rdsize_new = totalReadQueueSize + respQueue.size() + neededEntries;
+    if(rdsize_new > maxReadQueueSize) {
+        maxReadQueueSize = rdsize_new;
+        cout << "Read Queue Max Size " << maxReadQueueSize << endl;
+    }
     return rdsize_new > readBufferSize;
 }
 
+uint64_t maxWriteQueueSize = 0;
 bool
-DRAMCtrl::writeQueueFull(unsigned int neededEntries) const
+DRAMCtrl::writeQueueFull(unsigned int neededEntries, uint64_t virtualTime) const
 {
     DPRINTF(DRAM, "Write queue limit %d, current size %d, entries needed %d\n",
             writeBufferSize, totalWriteQueueSize, neededEntries);
 
     auto wrsize_new = (totalWriteQueueSize + neededEntries);
-    return  wrsize_new > writeBufferSize;
+    if(wrsize_new > maxWriteQueueSize) {
+        maxWriteQueueSize = wrsize_new;
+        cout << "Write Queue Max Size " << maxWriteQueueSize << endl;
+    } 
+    if(!writeQueue[0].empty()) {
+        if(wrsize_new > (writeBufferSize * 9 / 10)) {
+            if(virtualTime >= writeQueue[0][writeQueue[0].size() - 1]->virtualTime) {
+                return true;
+            }
+        }
+    }
+    return wrsize_new > writeBufferSize;
 }
 
 DRAMCtrl::DRAMPacket*
@@ -475,8 +492,8 @@ DRAMCtrl::addToReadQueue(PacketPtr pkt, unsigned int pktCount)
             readQueue[dram_pkt->qosValue()].push_back(dram_pkt);
             std::sort(readQueue[dram_pkt->qosValue()].begin(), readQueue[dram_pkt->qosValue()].end(),
                 [](const DRAMPacket *a, const DRAMPacket *b){
-                    // if(a->virtualTime == b->virtualTime)
-                    //     return a->entryTime < b->entryTime;
+                    if(a->virtualTime == b->virtualTime)
+                        return a->entryTime < b->entryTime;
                     return a->virtualTime < b->virtualTime;
                 });
 
@@ -548,8 +565,8 @@ DRAMCtrl::addToWriteQueue(PacketPtr pkt, unsigned int pktCount)
             writeQueue[dram_pkt->qosValue()].push_back(dram_pkt);
             std::sort(writeQueue[dram_pkt->qosValue()].begin(), writeQueue[dram_pkt->qosValue()].end(),
                 [](const DRAMPacket *a, const DRAMPacket *b){
-                    // if(a->virtualTime == b->virtualTime)
-                    //     return a->entryTime < b->entryTime;
+                    if(a->virtualTime == b->virtualTime)
+                        return a->entryTime < b->entryTime;
                     return a->virtualTime < b->virtualTime;
                 });
                 
@@ -617,11 +634,14 @@ DRAMCtrl::printQs() const
     }
 #endif // TRACING_ON
 }
-static uint64_t total_traffic[8192] = {0};
-static uint64_t read_pid_master[1024][40] = {{0}};
-static uint64_t write_pid_master[1024][40] = {{0}};
+static uint64_t total_traffic[1024] = {0};
+static uint64_t last_traffic[1024] = {0};
+static Tick last_tick[1024] = {0};
+static uint64_t read_pid_master[1024][32] = {{0}};
+static uint64_t write_pid_master[1024][32] = {{0}};
 static uint64_t unaccounted_traffic[64] = {0};
 void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
+    pid = pid % 1024;
     total_traffic[pid] += pkt->getSize();
     if(pkt->isRead()) {
         read_pid_master[pid][pkt->masterId()] += pkt->getSize();
@@ -629,10 +649,15 @@ void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
         write_pid_master[pid][pkt->masterId()] += pkt->getSize();
     }
     if(total_traffic[pid] % 1048576 == 0) {
+        double speed = ((double)(total_traffic[pid] - last_traffic[pid]) / 1048576)
+            / ((double)(curTick() - last_tick[pid]) / 1e12);
+        last_tick[pid] = curTick();
+        last_traffic[pid] = total_traffic[pid];
         cout << "pid " << pid << " total traffic " 
         << total_traffic[pid] / 1048576 << "MB" 
-        << " vt " << regs.virtualTime_pid[pid] << endl;
-        for(int i = 0 ;i < 40; i++) {
+        << " vt " << regs.virtualTime_pid[pid]  
+        << " " << speed << "MB/s" << endl;
+        for(int i = 0 ;i < 32; i++) {
             if(read_pid_master[pid][i] != 0 ||
                 write_pid_master[pid][i] != 0) {
                 cout << "Master " << system()->getMasterName(i) 
@@ -643,9 +668,19 @@ void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
         }
     }
 }
+uint64_t bus_traffic = 0;
+Tick bus_last_tick = 0;
 bool
 DRAMCtrl::recvTimingReq(PacketPtr pkt)
 {
+    bus_traffic += pkt->getSize();
+    if(curTick() > bus_last_tick + 100000000) {
+        double speed = ((double)bus_traffic /1048576) / ((double)(curTick() - bus_last_tick) / 1e12);
+        regs.bus_speed = speed;
+        cout << "--------Bus Speed: " << speed << "MB/s---------" << endl;
+        bus_traffic = 0;
+        bus_last_tick = curTick();
+    }
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
@@ -654,15 +689,12 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
 
     panic_if(!(pkt->isRead() || pkt->isWrite()),
              "Should only see read and writes at memory controller\n");
+    int pid = -1;
     if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        int pid = pkt->req->substreamId() % 8192;
-        regs.traffic[pid] += pkt->getSize();
-        print_traffic(pkt, pid);
+        pid = pkt->req->substreamId() % 8192;
     }
     else if(pkt->req->coreId != -1) {
-        int pid = regs.pid_coreId[pkt->req->coreId] % 8192;
-        regs.traffic[pid] += pkt->getSize();
-        print_traffic(pkt, pid);
+        pid = regs.pid_coreId[pkt->req->coreId] % 8192;
     }
     else {
         int masterId = pkt->req->masterId();
@@ -672,10 +704,6 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
                 cout << "Master " << masterId << " " 
                 << system()->getMasterName(masterId) << " unaccounted traffic "
                     << unaccounted_traffic[masterId]/1048576 << " MB" << endl;
-        }
-        else {
-            cout << "Large Master " << masterId << " " 
-                << system()->getMasterName(masterId) << endl;
         }
     }
 
@@ -696,11 +724,14 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
 
     // run the QoS scheduler and assign a QoS priority value to the packet
     qosSchedule( { &readQueue, &writeQueue }, burstSize, pkt);
-
+    uint64_t virtualTime = 0;
+    if(pid > 0) {
+        virtualTime = regs.virtualTime_pid[pid];
+    }
     // check local buffers and do not accept if full
     if (pkt->isWrite()) {
         assert(size != 0);
-        if (writeQueueFull(dram_pkt_count)) {
+        if (writeQueueFull(dram_pkt_count, virtualTime)) {
             DPRINTF(DRAM, "Write queue full, not accepting\n");
             // remember that we have to retry this port
             // std::cout << "DRAMCtrl: write queue full" << std::endl;
@@ -708,6 +739,8 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
             stats.numWrRetry++;
             return false;
         } else {
+            regs.traffic[pid] += pkt->getSize();
+            print_traffic(pkt, pid);
             addToWriteQueue(pkt, dram_pkt_count);
             stats.writeReqs++;
             stats.bytesWrittenSys += size;
@@ -718,11 +751,13 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         if (readQueueFull(dram_pkt_count)) {
             DPRINTF(DRAM, "Read queue full, not accepting\n");
             // remember that we have to retry this port
-            std::cout << "DRAMCtrl: read queue full" << std::endl;
+            // std::cout << "DRAMCtrl: read queue full" << std::endl;
             retryRdReq = true;
             stats.numRdRetry++;
             return false;
         } else {
+            regs.traffic[pid] += pkt->getSize();
+            print_traffic(pkt, pid);
             addToReadQueue(pkt, dram_pkt_count);
             stats.readReqs++;
             stats.bytesReadSys += size;
@@ -1386,8 +1421,8 @@ DRAMCtrl::doDRAMAccess(DRAMPacket* dram_pkt)
             dram_pkt->readyTime - dram_pkt->entryTime;
     }
 }
-#define READ_SWITCH_CAP 64
-#define WRITE_SWITCH_CAP 64
+#define READ_SWITCH_CAP 16
+#define WRITE_SWITCH_CAP 4
 void
 DRAMCtrl::processNextReqEvent()
 {
@@ -1397,41 +1432,16 @@ DRAMCtrl::processNextReqEvent()
     //     busStateNext = selectNextBusState();
     // }
     static int current_direction_time = 0;
+    busStateNext = busState;
     if(readQueue[0].empty()) {
         busStateNext = WRITE;
     } else if(writeQueue[0].empty()) {
         busStateNext = READ;
     } else { 
-        // if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime) {
-        //     busStateNext = WRITE;
-        // } else {
-        //     busStateNext = READ;
-        // }
-
-        // if(busState == READ) {
-        //     if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime
-        //         && readsThisTime >= READ_SWITCH_CAP) {
-        //             busStateNext = WRITE;
-        //     }
-        // }
-        // else {
-        //     if(readQueue[0][0]->virtualTime < writeQueue[0][0]->virtualTime
-        //         && writesThisTime >= WRITE_SWITCH_CAP) {
-        //             busStateNext = READ;
-        //         }
-        // }
-
-        if(busState == READ) {
-            if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime
-                && writeQueue[0][0]->pid != readQueue[0][0]->pid) {
-                    busStateNext = WRITE;
-            }
-        }
-        else {
-            if(readQueue[0][0]->virtualTime < writeQueue[0][0]->virtualTime
-                && writeQueue[0][0]->pid != readQueue[0][0]->pid) {
-                    busStateNext = READ;
-                }
+        if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime) {
+            busStateNext = WRITE;
+        } else {
+            busStateNext = READ;
         }
     }
     // detect bus state change

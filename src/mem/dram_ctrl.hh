@@ -731,7 +731,7 @@ class DRAMCtrl : public QoS::MemCtrl
                    uint32_t _row, uint16_t bank_id, Addr _addr,
                    unsigned int _size, Bank& bank_ref, Rank& rank_ref, Tick virtualOffset, uint32_t _pid)
             : entryTime(curTick()), readyTime(curTick()), 
-              virtualTime(curTick() + virtualOffset * 1000), pkt(_pkt),
+              virtualTime(virtualOffset), pkt(_pkt),
               _masterId(pkt->masterId()),
               read(is_read), rank(_rank), bank(_bank), row(_row),
               bankId(bank_id), addr(_addr), size(_size), burstHelper(NULL),
@@ -770,7 +770,7 @@ class DRAMCtrl : public QoS::MemCtrl
      * @param pktCount The number of entries needed in the write queue
      * @return true if write queue is full, false otherwise
      */
-    bool writeQueueFull(unsigned int pktCount) const;
+    bool writeQueueFull(unsigned int pktCount, uint64_t virtualTime) const;
 
     /**
      * When a new read comes in, first check if the write q has a
@@ -1206,6 +1206,7 @@ class DRAMCtrl : public QoS::MemCtrl
         long virtualTime_pid[8192];
         long virtualTime_coreId[4];
         uint64_t pid_coreId[4];
+        double bus_speed;
       };
     } regs;
     DRAMCtrl(const DRAMCtrlParams* p);

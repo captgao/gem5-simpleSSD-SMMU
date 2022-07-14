@@ -652,7 +652,8 @@ std::string
 System::getMasterName(MasterID master_id)
 {
     if (master_id >= masters.size())
-        fatal("Invalid master_id passed to getMasterName()\n");
+        return to_string(master_id);
+        
 
     const auto& master_info = masters[master_id];
     return master_info.masterName;
