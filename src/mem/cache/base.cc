@@ -340,13 +340,6 @@ BaseCache::recvTimingReq(PacketPtr pkt)
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
 
-    // if(system->getMasterName(pkt->masterId()).find("cpu") == string::npos)
-    //     cout << name() << " " << system->getMasterName(pkt->masterId()) << " " 
-    //         << std::hex << pkt->getAddr() << std::dec << endl;
-    // else if(system->getMasterName(pkt->masterId()).find("nvme") != string::npos)
-    //     cout << name() << " " << system->getMasterName(pkt->masterId()) << " " 
-    //         << std::hex << pkt->getAddr() << std::dec 
-    //         << " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0)<< endl;
     Tick forward_time = clockEdge(forwardLatency) + pkt->headerDelay;
     Cycles lat;
     CacheBlk *blk = nullptr;
@@ -390,27 +383,9 @@ BaseCache::recvTimingReq(PacketPtr pkt)
         if (prefetcher && blk && blk->wasPrefetched()) {
             blk->status &= ~BlkHWPrefetched;
         }
-        // if(system->getMasterName(pkt->masterId()).find("cpu") == string::npos)
-        // cout << name() << " hit " << system->getMasterName(pkt->masterId()) << 
-        // " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
-        //  " " << std::hex << pkt->getAddr() << std::dec << endl;
 
-        // else if (system->getMasterName(pkt->masterId()).find("nvme") != string::npos) {
-        //     cout << name() << " hit " << system->getMasterName(pkt->masterId()) <<
-        //     " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
-        //     " " << std::hex << pkt->getAddr() << std::dec << endl;
-        // }
         handleTimingReqHit(pkt, blk, request_time);
     } else {
-        // if(system->getMasterName(pkt->masterId()).find("cpu") == string::npos)
-        // cout << name() << " miss " << system->getMasterName(pkt->masterId()) << 
-        // " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
-        //  " " << std::hex << pkt->getAddr() << std::dec << endl;
-        // else if (system->getMasterName(pkt->masterId()).find("nvme") != string::npos) {
-        //     cout << name() << " miss " << system->getMasterName(pkt->masterId()) <<
-        //     " pid " << (pkt->req->hasSubstreamId() ? pkt->req->substreamId() : 0) <<
-        //     " " << std::hex << pkt->getAddr() << std::dec << endl;
-        // }
  
         handleTimingReqMiss(pkt, blk, forward_time, request_time);
 
@@ -806,6 +781,7 @@ BaseCache::getNextQueueEntry()
 
             // @todo Note that we ignore the ready time of the conflict here
         }
+
         // No conflicts; issue write
         return wq_entry;
     } else if (miss_mshr) {
@@ -1596,6 +1572,7 @@ BaseCache::writebackBlk(CacheBlk *blk)
     if (compressor) {
         pkt->payloadDelay = compressor->getDecompressionLatency(blk);
     }
+
     return pkt;
 }
 
@@ -1834,8 +1811,6 @@ BaseCache::sendWriteQueuePacket(WriteQueueEntry* wq_entry)
     PacketPtr tgt_pkt = wq_entry->getTarget()->pkt;
 
     DPRINTF(Cache, "%s: write %s\n", __func__, tgt_pkt->print());
-    // std::cout << "BaseCache::sendWriteQueuePacket"
-    //     << memSidePort.getPeer().name() << std::endl;
     // forward as is, both for evictions and uncacheable writes
     if (!memSidePort.sendTimingReq(tgt_pkt)) {
         // note that we have now masked any requestBus and
@@ -2386,6 +2361,7 @@ bool
 BaseCache::CpuSidePort::recvTimingReq(PacketPtr pkt)
 {
     assert(pkt->isRequest());
+
     if (cache->system->bypassCaches()) {
         // Just forward the packet if caches are disabled.
         // @todo This should really enqueue the packet rather
@@ -2487,6 +2463,7 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
 {
     // sanity check
     assert(!waitingOnRetry);
+
     // there should never be any deferred request packets in the
     // queue, instead we resly on the cache to provide the packets
     // from the MSHR queue or write queue
