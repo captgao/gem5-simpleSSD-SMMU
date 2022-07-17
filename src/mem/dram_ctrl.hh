@@ -1206,7 +1206,7 @@ class DRAMCtrl : public QoS::MemCtrl
         long virtualTime_pid[8192];
         long virtualTime_coreId[4];
         uint64_t pid_coreId[4];
-        double bus_speed;
+        uint64_t saturation;
       };
     } regs;
     DRAMCtrl(const DRAMCtrlParams* p);

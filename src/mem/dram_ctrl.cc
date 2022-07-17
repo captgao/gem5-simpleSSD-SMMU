@@ -640,8 +640,19 @@ static Tick last_tick[1024] = {0};
 static uint64_t read_pid_master[1024][32] = {{0}};
 static uint64_t write_pid_master[1024][32] = {{0}};
 static uint64_t unaccounted_traffic[64] = {0};
+static uint64_t all_traffic = 0;
+static Tick all_traffic_last_tick = 0;
 void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
+    all_traffic += pkt->getSize();
+    if(all_traffic_last_tick + 4000000000 < curTick()) {
+        uint64_t saturation = 100 * all_traffic * 1024 / ((curTick() - all_traffic_last_tick) /1000) / 2700;
+        cout << "Memory saturation " << saturation << "%" << endl;
+        regs.saturation = saturation;
+        all_traffic_last_tick = curTick();
+        all_traffic = 0;
+    }
     pid = pid % 1024;
+    if(pid < 0) return;
     total_traffic[pid] += pkt->getSize();
     if(pkt->isRead()) {
         read_pid_master[pid][pkt->masterId()] += pkt->getSize();
@@ -656,7 +667,7 @@ void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
         cout << "pid " << pid << " total traffic " 
         << total_traffic[pid] / 1048576 << "MB" 
         << " vt " << regs.virtualTime_pid[pid]  
-        << " " << speed << "MB/s" << endl;
+        << " " << speed << "MB/s at tick " << curTick() << endl;
         for(int i = 0 ;i < 32; i++) {
             if(read_pid_master[pid][i] != 0 ||
                 write_pid_master[pid][i] != 0) {
@@ -673,14 +684,14 @@ Tick bus_last_tick = 0;
 bool
 DRAMCtrl::recvTimingReq(PacketPtr pkt)
 {
-    bus_traffic += pkt->getSize();
-    if(curTick() > bus_last_tick + 100000000) {
-        double speed = ((double)bus_traffic /1048576) / ((double)(curTick() - bus_last_tick) / 1e12);
-        regs.bus_speed = speed;
-        cout << "--------Bus Speed: " << speed << "MB/s---------" << endl;
-        bus_traffic = 0;
-        bus_last_tick = curTick();
-    }
+    // bus_traffic += pkt->getSize();
+    // if(curTick() > bus_last_tick + 100000000) {
+    //     double speed = ((double)bus_traffic /1048576) / ((double)(curTick() - bus_last_tick) / 1e12);
+    //     regs.bus_speed = speed;
+    //     cout << "--------Bus Speed: " << speed << "MB/s---------" << endl;
+    //     bus_traffic = 0;
+    //     bus_last_tick = curTick();
+    // }
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
