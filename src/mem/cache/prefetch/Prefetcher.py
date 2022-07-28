@@ -175,7 +175,7 @@ class IndirectMemoryPrefetcher(QueuedPrefetcher):
     type = 'IndirectMemoryPrefetcher'
     cxx_class = 'IndirectMemoryPrefetcher'
     cxx_header = "mem/cache/prefetch/indirect_memory.hh"
-    pt_table_entries = Param.MemorySize("16",
+    pt_table_entries = Param.MemorySize("32",
         "Number of entries of the Prefetch Table")
     pt_table_assoc = Param.Unsigned(16, "Associativity of the Prefetch Table")
     pt_table_indexing_policy = Param.BaseIndexingPolicy(
@@ -241,9 +241,9 @@ class SignaturePathPrefetcher(QueuedPrefetcher):
     pattern_table_replacement_policy = Param.BaseReplacementPolicy(LRURP(),
         "Replacement policy of the pattern table")
 
-    prefetch_confidence_threshold = Param.Float(0.5,
+    prefetch_confidence_threshold = Param.Float(0.25,
         "Minimum confidence to issue prefetches")
-    lookahead_confidence_threshold = Param.Float(0.75,
+    lookahead_confidence_threshold = Param.Float(0.25,
         "Minimum confidence to continue exploring lookahead entries")
 
 class SignaturePathPrefetcherV2(SignaturePathPrefetcher):

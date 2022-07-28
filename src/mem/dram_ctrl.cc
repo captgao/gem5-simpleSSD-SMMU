@@ -270,24 +270,6 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
-    //std::cout << "dram_ctrl.cc recvAtomic: masterId " << pkt->masterId() << " "  << this->_system->getMasterName(pkt->masterId()) << std::endl;
-    // if (pkt->masterId() == 0) {
-    //     void *array[10];
-    //     size_t btsize = backtrace(array,10);
-    //     backtrace_symbols_fd(array, btsize, 1);
-    // }
-    // if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0)
-    //     std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId() << " masterId " << pkt->req->masterId() << std::endl;
-    // else if (pkt->req->coreId != -1)
-    //     std::cout << "dram_ctrl.cc: coreId" << pkt->req->coreId << std::endl;
-    // else
-    //     std::cout << "i";
-    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        int index = pkt->req->substreamId() % 8192;
-        regs.traffic[index] += pkt->getSize();
-        std::cout << "regs[" << index << "] "
-            << regs.traffic[index] << std::endl;
-    }
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
@@ -613,45 +595,12 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
-    //std::cout << "dram_ctrl.cc recvTimingReq: " << pkt->req->virtualTime << std::endl;
+
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
     panic_if(!(pkt->isRead() || pkt->isWrite()),
              "Should only see read and writes at memory controller\n");
-
-    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        int index = pkt->req->substreamId() % 8192;
-        regs.traffic[index] += pkt->getSize();
-        if(regs.traffic[index] % 16384 = 0)
-            std::cout << "regs[" << index << "] " << regs.traffic[index] << std::endl;
-    }
-
-    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
-        // std::cout << "dram_ctrl.cc: ssid " << pkt->req->substreamId()
-        //     << " masterId " << pkt->req->masterId() << std::endl;
-    }
-    else if (pkt->req->coreId != -1) {
-        // std::cout << "dram_ctrl.cc: coreId"
-        //  << pkt->req->coreId << " 0x"
-        //  << std::hex << pkt->req->getPaddr() << std::dec
-        //  << std::endl;
-    }
-    else {
-        // std::cout << "MasterId" << pkt->req->masterId()
-        //     << this->_system->getMasterName(pkt->req->masterId())
-        //     << " " << std::hex << pkt->req->getPaddr() << std::dec
-        //     << std::endl;
-        if (pkt->req->masterId() == 0) {
-            // std::cout << "MasterId" << pkt->req->masterId()
-            //     << this->_system->getMasterName(pkt->req->masterId())
-            //     << " " << std::hex << pkt->req->getPaddr() << std::dec
-            //     << std::endl;
-            // void *array[10];
-            // size_t btsize = backtrace(array,10);
-            // backtrace_symbols_fd(array, btsize, 1);
-        }
-    }
 
     // Calc avg gap between requests
     if (prevArrival != 0) {
@@ -677,7 +626,6 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         if (writeQueueFull(dram_pkt_count)) {
             DPRINTF(DRAM, "Write queue full, not accepting\n");
             // remember that we have to retry this port
-            std::cout << "DRAMCtrl: write queue full" << std::endl;
             retryWrReq = true;
             stats.numWrRetry++;
             return false;
@@ -692,7 +640,6 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
         if (readQueueFull(dram_pkt_count)) {
             DPRINTF(DRAM, "Read queue full, not accepting\n");
             // remember that we have to retry this port
-            std::cout << "DRAMCtrl: read queue full" << std::endl;
             retryRdReq = true;
             stats.numRdRetry++;
             return false;
@@ -804,10 +751,6 @@ DRAMCtrl::chooseNext(DRAMPacketQueue& queue, Tick extra_col_delay)
     // This method does the arbitration between requests.
 
     DRAMCtrl::DRAMPacketQueue::iterator ret = queue.end();
-    // std::cout << "DRAMCtrl:: chooseNext" << std::endl;
-    // void *array[5];
-    // size_t btsize = backtrace(array,5);
-    // backtrace_symbols_fd(array, btsize, 1);
     if (!queue.empty()) {
         if (queue.size() == 1) {
             // available rank corresponds to state refresh idle
@@ -2765,9 +2708,6 @@ void
 DRAMCtrl::recvFunctional(PacketPtr pkt)
 {
     // rely on the abstract memory
-    std::cout << "DRAMCtrl::recvFunctional "
-    << this->_system->getMasterName(pkt->req->masterId())
-    << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
@@ -2872,10 +2812,6 @@ void
 DRAMCtrl::MemoryPort::recvFunctional(PacketPtr pkt)
 {
     pkt->pushLabel(memory.name());
-    std::cout << "DRAMCtrl::MemoryPort::recvFunctional "
-     << name() << " "
-     << getPeer()
-     << std::endl;
     // void *array[10];
     // size_t btsize = backtrace(array,10);
     // backtrace_symbols_fd(array, btsize, 1);
@@ -2936,7 +2872,7 @@ DRAMCtrl::writeControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-    if (offset==24576) {
+    if (offset==24576 * 8) {
         memset(regs.data, 0, 8 * 65536);
         pkt->makeAtomicResponse();
         return 0;

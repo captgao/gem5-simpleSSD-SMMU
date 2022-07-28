@@ -87,16 +87,16 @@ class DRAMCtrl(QoSMemCtrl):
     # that each entry corresponds to a burst for the specific DRAM
     # configuration (e.g. x32 with burst length 8 is 32 bytes) and not
     # the cacheline size or request/packet size
-    write_buffer_size = Param.Unsigned(1024, "Number of write queue entries")
-    read_buffer_size = Param.Unsigned(1024, "Number of read queue entries")
+    write_buffer_size = Param.Unsigned(128, "Number of write queue entries")
+    read_buffer_size = Param.Unsigned(128, "Number of read queue entries")
 
     # threshold in percent for when to forcefully trigger writes and
     # start emptying the write buffer
-    write_high_thresh_perc = Param.Percent(85, "Threshold to force writes")
+    write_high_thresh_perc = Param.Percent(60, "Threshold to force writes")
 
     # threshold in percentage for when to start writes if the read
     # queue is empty
-    write_low_thresh_perc = Param.Percent(50, "Threshold to start writes")
+    write_low_thresh_perc = Param.Percent(40, "Threshold to start writes")
 
     # minimum write bursts to schedule before switching back to reads
     min_writes_per_switch = Param.Unsigned(16, "Minimum write bursts before "
