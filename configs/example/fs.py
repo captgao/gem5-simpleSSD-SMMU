@@ -148,6 +148,9 @@ def build_test_system(np, simplessd):
     test_sys.cpu = [TestCPUClass(clk_domain=test_sys.cpu_clk_domain, cpu_id=i)
                     for i in range(np)]
 
+
+        
+
     if ObjectList.is_kvm_cpu(TestCPUClass) or \
         ObjectList.is_kvm_cpu(FutureClass):
         test_sys.kvm_vm = KvmVM()
@@ -197,7 +200,8 @@ def build_test_system(np, simplessd):
             if buildEnv['TARGET_ISA'] in "arm":
                 if options.machine_type == "VExpress_GEM5_V1":
                     test_sys.iobridge = Bridge(delay='50ns',
-                                               ranges=[gicv2m_range])
+                                               ranges=[gicv2m_range, AddrRange(0x2b800000, size=0x00800000)])
+                    
                     test_sys.iobridge.slave = test_sys.iobus.master
                     test_sys.iobridge.master = test_sys.membus.slave
 
@@ -208,7 +212,8 @@ def build_test_system(np, simplessd):
             if buildEnv['TARGET_ISA'] in "arm":
                 if options.machine_type == "VExpress_GEM5_V1":
                     mem_ranges.append(gicv2m_range)
-
+                    
+            
             test_sys.iobridge = Bridge(delay='50ns', ranges=mem_ranges)
             test_sys.iobridge.slave = test_sys.iobus.master
             test_sys.iobridge.master = test_sys.membus.slave
@@ -260,6 +265,16 @@ def build_test_system(np, simplessd):
                 lapics.append(test_sys.cpu[i].interrupts[0])
 
             test_sys.msi_handler.lapics = lapics
+
+    if buildEnv['TARGET_ISA'] == "arm":
+        for cpu in test_sys.cpu:
+            for isa in cpu.isa:
+                isa.pmu = ArmPMU(interrupt=ArmPPI(num=20))
+                isa.pmu.addArchEvents(
+                    cpu=cpu, dtb=cpu.dtb, itb=cpu.itb,
+                    icache=getattr(cpu, "icache", None),
+                    dcache=getattr(cpu, "dcache", None),
+                    l2cache=getattr(test_sys, "l2", None))
 
     return test_sys
 

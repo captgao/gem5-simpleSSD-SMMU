@@ -624,6 +624,9 @@ class DRAMCtrl : public QoS::MemCtrl
         /** When will request leave the controller */
         Tick readyTime;
 
+        Tick virtualTime;
+        uint32_t pid;
+
         /** This comes from the outside world */
         const PacketPtr pkt;
 
@@ -724,6 +727,17 @@ class DRAMCtrl : public QoS::MemCtrl
               bankRef(bank_ref), rankRef(rank_ref), _qosValue(_pkt->qosValue())
         { }
 
+        DRAMPacket(PacketPtr _pkt, bool is_read, uint8_t _rank, uint8_t _bank,
+                   uint32_t _row, uint16_t bank_id, Addr _addr,
+                   unsigned int _size, Bank& bank_ref, Rank& rank_ref, Tick virtualOffset, uint32_t _pid)
+            : entryTime(curTick()), readyTime(curTick()), 
+              virtualTime(virtualOffset), pkt(_pkt),
+              _masterId(pkt->masterId()),
+              read(is_read), rank(_rank), bank(_bank), row(_row),
+              bankId(bank_id), addr(_addr), size(_size), burstHelper(NULL),
+              bankRef(bank_ref), rankRef(rank_ref), _qosValue(_pkt->qosValue()),pid(_pid)
+        { }
+
     };
 
     // The DRAM packets are store in a multiple dequeue structure,
@@ -756,7 +770,7 @@ class DRAMCtrl : public QoS::MemCtrl
      * @param pktCount The number of entries needed in the write queue
      * @return true if write queue is full, false otherwise
      */
-    bool writeQueueFull(unsigned int pktCount) const;
+    bool writeQueueFull(unsigned int pktCount, uint64_t virtualTime) const;
 
     /**
      * When a new read comes in, first check if the write q has a
@@ -1192,6 +1206,7 @@ class DRAMCtrl : public QoS::MemCtrl
         long virtualTime_pid[8192];
         long virtualTime_coreId[4];
         uint64_t pid_coreId[4];
+        uint64_t saturation;
       };
     } regs;
     DRAMCtrl(const DRAMCtrlParams* p);
@@ -1224,6 +1239,7 @@ class DRAMCtrl : public QoS::MemCtrl
     Tick recvAtomic(PacketPtr pkt);
     void recvFunctional(PacketPtr pkt);
     bool recvTimingReq(PacketPtr pkt);
+    void print_traffic(PacketPtr pkt, int pid);
 
 };
 

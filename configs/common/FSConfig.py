@@ -315,7 +315,6 @@ def makeArmSystem(mem_mode, machine_type, simplessd, num_cpus=1, mdesc=None,
             break
         warn("Memory size specified spans more than one region. Creating" \
              " another memory controller for that range.")
-
     if size_remain > 0:
         fatal("The currently selected ARM platforms doesn't support" \
               " the amount of DRAM you've selected. Please try" \
@@ -405,6 +404,8 @@ def makeArmSystem(mem_mode, machine_type, simplessd, num_cpus=1, mdesc=None,
             dma_ports=self._dma_ports, mem_ports=self._mem_ports)
         self.realview.attachIO(self.iobus, dma_ports=self._dma_ports)
     else:
+        print("attach membus bridge")
+        self.bridge.ranges = [AddrRange(0x2b800000, size=0x00800000)]
         self.realview.attachOnChipIO(self.membus, self.bridge)
         # Attach off-chip devices
         self.realview.attachIO(self.iobus)

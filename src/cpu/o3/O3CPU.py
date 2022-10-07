@@ -76,9 +76,9 @@ class DerivO3CPU(BaseCPU):
 
     activity = Param.Unsigned(0, "Initial count")
 
-    cacheStorePorts = Param.Unsigned(200, "Cache Ports. "
+    cacheStorePorts = Param.Unsigned(4, "Cache Ports. "
           "Constrains stores only.")
-    cacheLoadPorts = Param.Unsigned(200, "Cache Ports. "
+    cacheLoadPorts = Param.Unsigned(4, "Cache Ports. "
           "Constrains loads only.")
 
     decodeToFetchDelay = Param.Cycles(1, "Decode to fetch delay")
@@ -88,7 +88,7 @@ class DerivO3CPU(BaseCPU):
     commitToFetchDelay = Param.Cycles(1, "Commit to fetch delay")
     fetchWidth = Param.Unsigned(8, "Fetch width")
     fetchBufferSize = Param.Unsigned(64, "Fetch buffer size in bytes")
-    fetchQueueSize = Param.Unsigned(32, "Fetch queue size in micro-ops "
+    fetchQueueSize = Param.Unsigned(128, "Fetch queue size in micro-ops "
                                     "per-thread")
 
     renameToDecodeDelay = Param.Cycles(1, "Rename to decode delay")
@@ -126,15 +126,15 @@ class DerivO3CPU(BaseCPU):
     backComSize = Param.Unsigned(5, "Time buffer size for backwards communication")
     forwardComSize = Param.Unsigned(5, "Time buffer size for forward communication")
 
-    LQEntries = Param.Unsigned(32, "Number of load queue entries")
-    SQEntries = Param.Unsigned(32, "Number of store queue entries")
+    LQEntries = Param.Unsigned(128, "Number of load queue entries")
+    SQEntries = Param.Unsigned(128, "Number of store queue entries")
     LSQDepCheckShift = Param.Unsigned(4, "Number of places to shift addr before check")
     LSQCheckLoads = Param.Bool(True,
         "Should dependency violations be checked for loads & stores or just stores")
     store_set_clear_period = Param.Unsigned(250000,
             "Number of load/store insts before the dep predictor should be invalidated")
-    LFSTSize = Param.Unsigned(1024, "Last fetched store table size")
-    SSITSize = Param.Unsigned(1024, "Store set ID table size")
+    LFSTSize = Param.Unsigned(2048, "Last fetched store table size")
+    SSITSize = Param.Unsigned(2048, "Store set ID table size")
 
     numRobs = Param.Unsigned(1, "Number of Reorder Buffers");
 
@@ -157,8 +157,8 @@ class DerivO3CPU(BaseCPU):
                                       "registers")
     numPhysCCRegs = Param.Unsigned(_defaultNumPhysCCRegs,
                                    "Number of physical cc registers")
-    numIQEntries = Param.Unsigned(64, "Number of instruction queue entries")
-    numROBEntries = Param.Unsigned(192, "Number of reorder buffer entries")
+    numIQEntries = Param.Unsigned(128, "Number of instruction queue entries")
+    numROBEntries = Param.Unsigned(384, "Number of reorder buffer entries")
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
     smtFetchPolicy = Param.FetchPolicy('SingleThread', "SMT Fetch policy")

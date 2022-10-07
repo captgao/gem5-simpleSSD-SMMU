@@ -202,7 +202,11 @@ DRAMCtrl::init()
     } else {
         port.sendRangeChange();
     }
-
+    if (!regPort.isConnected()) {
+        fatal("DRAMCtrl %s regport is unconnected!\n", name());
+    } else {
+        regPort.sendRangeChange();
+    }
     // a bit of sanity checks on the interleaving, save it for here to
     // ensure that the system pointer is initialised
     if (range.interleaved()) {
@@ -268,6 +272,10 @@ Tick
 DRAMCtrl::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(DRAM, "recvAtomic: %s 0x%x\n", pkt->cmdString(), pkt->getAddr());
+    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        int index = pkt->req->substreamId() % 8192;
+        regs.traffic[index] += pkt->getSize();
+    }
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
              "is responding");
 
@@ -283,6 +291,7 @@ DRAMCtrl::recvAtomic(PacketPtr pkt)
     return latency;
 }
 
+uint64_t maxReadQueueSize = 0;
 bool
 DRAMCtrl::readQueueFull(unsigned int neededEntries) const
 {
@@ -291,17 +300,33 @@ DRAMCtrl::readQueueFull(unsigned int neededEntries) const
             neededEntries);
 
     auto rdsize_new = totalReadQueueSize + respQueue.size() + neededEntries;
+    if(rdsize_new > maxReadQueueSize) {
+        maxReadQueueSize = rdsize_new;
+        cout << "Read Queue Max Size " << maxReadQueueSize << endl;
+    }
     return rdsize_new > readBufferSize;
 }
 
+uint64_t maxWriteQueueSize = 0;
 bool
-DRAMCtrl::writeQueueFull(unsigned int neededEntries) const
+DRAMCtrl::writeQueueFull(unsigned int neededEntries, uint64_t virtualTime) const
 {
     DPRINTF(DRAM, "Write queue limit %d, current size %d, entries needed %d\n",
             writeBufferSize, totalWriteQueueSize, neededEntries);
 
     auto wrsize_new = (totalWriteQueueSize + neededEntries);
-    return  wrsize_new > writeBufferSize;
+    if(wrsize_new > maxWriteQueueSize) {
+        maxWriteQueueSize = wrsize_new;
+        cout << "Write Queue Max Size " << maxWriteQueueSize << endl;
+    } 
+    if(!writeQueue[0].empty()) {
+        if(wrsize_new > (writeBufferSize * 9 / 10)) {
+            if(virtualTime >= writeQueue[0][writeQueue[0].size() - 1]->virtualTime) {
+                return true;
+            }
+        }
+    }
+    return wrsize_new > writeBufferSize;
 }
 
 DRAMCtrl::DRAMPacket*
@@ -376,9 +401,17 @@ DRAMCtrl::decodeAddr(const PacketPtr pkt, Addr dramPktAddr, unsigned size,
     // ready time set to the current tick, the latter will be updated
     // later
     uint16_t bank_id = banksPerRank * rank + bank;
-
+    Tick offset = 0;
+    int pid = -1;
+    if(pkt->req->coreId != -1) {
+        pid = regs.pid_coreId[pkt->req->coreId];
+        offset = regs.virtualTime_pid[pid];
+    } else if(pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        pid = pkt->req->substreamId();
+        offset = regs.virtualTime_pid[pid];
+    }
     return new DRAMPacket(pkt, isRead, rank, bank, row, bank_id, dramPktAddr,
-                          size, ranks[rank]->banks[bank], *ranks[rank]);
+                          size, ranks[rank]->banks[bank], *ranks[rank], offset, pid);
 }
 
 void
@@ -455,6 +488,12 @@ DRAMCtrl::addToReadQueue(PacketPtr pkt, unsigned int pktCount)
             DPRINTF(DRAM, "Adding to read queue\n");
 
             readQueue[dram_pkt->qosValue()].push_back(dram_pkt);
+            std::sort(readQueue[dram_pkt->qosValue()].begin(), readQueue[dram_pkt->qosValue()].end(),
+                [](const DRAMPacket *a, const DRAMPacket *b){
+                    if(a->virtualTime == b->virtualTime)
+                        return a->entryTime < b->entryTime;
+                    return a->virtualTime < b->virtualTime;
+                });
 
             ++dram_pkt->rankRef.readEntries;
 
@@ -522,6 +561,13 @@ DRAMCtrl::addToWriteQueue(PacketPtr pkt, unsigned int pktCount)
             DPRINTF(DRAM, "Adding to write queue\n");
 
             writeQueue[dram_pkt->qosValue()].push_back(dram_pkt);
+            std::sort(writeQueue[dram_pkt->qosValue()].begin(), writeQueue[dram_pkt->qosValue()].end(),
+                [](const DRAMPacket *a, const DRAMPacket *b){
+                    if(a->virtualTime == b->virtualTime)
+                        return a->entryTime < b->entryTime;
+                    return a->virtualTime < b->virtualTime;
+                });
+                
             isInWriteQueue.insert(burstAlign(addr));
 
             // log packet
@@ -586,10 +632,63 @@ DRAMCtrl::printQs() const
     }
 #endif // TRACING_ON
 }
-
+static uint64_t total_traffic[1024] = {0};
+static uint64_t last_traffic[1024] = {0};
+static Tick last_tick[1024] = {0};
+static uint64_t read_pid_master[1024][32] = {{0}};
+static uint64_t write_pid_master[1024][32] = {{0}};
+static uint64_t unaccounted_traffic[64] = {0};
+static uint64_t all_traffic = 0;
+static Tick all_traffic_last_tick = 0;
+void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
+    all_traffic += pkt->getSize();
+    if(all_traffic_last_tick + 4000000 < curTick()) {
+        uint64_t saturation = 100 * all_traffic * 1024 / ((curTick() - all_traffic_last_tick) /1000) / 2700;
+        regs.saturation = saturation;
+        all_traffic_last_tick = curTick();
+        all_traffic = 0;
+    }
+    pid = pid % 1024;
+    if(pid < 0) return;
+    total_traffic[pid] += pkt->getSize();
+    if(pkt->isRead()) {
+        read_pid_master[pid][pkt->masterId()] += pkt->getSize();
+    } else if(pkt->isWrite()) {
+        write_pid_master[pid][pkt->masterId()] += pkt->getSize();
+    }
+    if(total_traffic[pid] % 1048576 == 0) {
+        double speed = ((double)(total_traffic[pid] - last_traffic[pid]) / 1048576)
+            / ((double)(curTick() - last_tick[pid]) / 1e12);
+        last_tick[pid] = curTick();
+        last_traffic[pid] = total_traffic[pid];
+        cout << "pid " << pid << " total traffic " 
+        << total_traffic[pid] / 1048576 << "MB" 
+        << " vt " << regs.virtualTime_pid[pid]  
+        << " " << speed << "MB/s at tick " << curTick() << endl;
+        for(int i = 0 ;i < 32; i++) {
+            if(read_pid_master[pid][i] != 0 ||
+                write_pid_master[pid][i] != 0) {
+                cout << "Master " << system()->getMasterName(i) 
+                    << " R " << read_pid_master[pid][i] 
+                    << " W " << write_pid_master[pid][i]
+                    << endl;
+            }
+        }
+    }
+}
+uint64_t bus_traffic = 0;
+Tick bus_last_tick = 0;
 bool
 DRAMCtrl::recvTimingReq(PacketPtr pkt)
 {
+    // bus_traffic += pkt->getSize();
+    // if(curTick() > bus_last_tick + 100000000) {
+    //     double speed = ((double)bus_traffic /1048576) / ((double)(curTick() - bus_last_tick) / 1e12);
+    //     regs.bus_speed = speed;
+    //     cout << "--------Bus Speed: " << speed << "MB/s---------" << endl;
+    //     bus_traffic = 0;
+    //     bus_last_tick = curTick();
+    // }
     // This is where we enter from the outside world
     DPRINTF(DRAM, "recvTimingReq: request %s addr %lld size %d\n",
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
@@ -617,17 +716,22 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
 
     // run the QoS scheduler and assign a QoS priority value to the packet
     qosSchedule( { &readQueue, &writeQueue }, burstSize, pkt);
-
+    uint64_t virtualTime = 0;
+    if(pid > 0) {
+        virtualTime = regs.virtualTime_pid[pid];
+    }
     // check local buffers and do not accept if full
     if (pkt->isWrite()) {
         assert(size != 0);
-        if (writeQueueFull(dram_pkt_count)) {
+        if (writeQueueFull(dram_pkt_count, virtualTime)) {
             DPRINTF(DRAM, "Write queue full, not accepting\n");
             // remember that we have to retry this port
             retryWrReq = true;
             stats.numWrRetry++;
             return false;
         } else {
+            regs.traffic[pid] += pkt->getSize();
+            print_traffic(pkt, pid);
             addToWriteQueue(pkt, dram_pkt_count);
             stats.writeReqs++;
             stats.bytesWrittenSys += size;
@@ -642,6 +746,8 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
             stats.numRdRetry++;
             return false;
         } else {
+            regs.traffic[pid] += pkt->getSize();
+            print_traffic(pkt, pid);
             addToReadQueue(pkt, dram_pkt_count);
             stats.readReqs++;
             stats.bytesReadSys += size;
@@ -1301,16 +1407,29 @@ DRAMCtrl::doDRAMAccess(DRAMPacket* dram_pkt)
             dram_pkt->readyTime - dram_pkt->entryTime;
     }
 }
-
+#define READ_SWITCH_CAP 16
+#define WRITE_SWITCH_CAP 4
 void
 DRAMCtrl::processNextReqEvent()
 {
     // transition is handled by QoS algorithm if enabled
-    if (turnPolicy) {
-        // select bus state - only done if QoS algorithms are in use
-        busStateNext = selectNextBusState();
+    // if (turnPolicy) {
+    //     // select bus state - only done if QoS algorithms are in use
+    //     busStateNext = selectNextBusState();
+    // }
+    static int current_direction_time = 0;
+    busStateNext = busState;
+    if(readQueue[0].empty()) {
+        busStateNext = WRITE;
+    } else if(writeQueue[0].empty()) {
+        busStateNext = READ;
+    } else { 
+        if(writeQueue[0][0]->virtualTime < readQueue[0][0]->virtualTime) {
+            busStateNext = WRITE;
+        } else {
+            busStateNext = READ;
+        }
     }
-
     // detect bus state change
     bool switched_cmd_type = (busState != busStateNext);
     // record stats
@@ -1435,6 +1554,8 @@ DRAMCtrl::processNextReqEvent()
 
                 if (to_read != queue->end()) {
                     // candidate read found
+                    if(prio != 0)
+                        cout << "read break at prio " << (int)prio << endl;
                     read_found = true;
                     break;
                 }
@@ -1517,6 +1638,8 @@ DRAMCtrl::processNextReqEvent()
                                   switched_cmd_type ? std::min(tRTW, tCS) : 0);
 
             if (to_write != queue->end()) {
+                if(prio != 0)
+                    cout << "write break at " << (int)prio << endl;
                 write_found = true;
                 break;
             }
@@ -2835,15 +2958,13 @@ DRAMCtrlParams::create()
 {
     return new DRAMCtrl(this);
 }
-
+static uint64_t last_read_tick[8192] = {0};
 Tick
 DRAMCtrl::readControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-
     void* reg_ptr = (void*)regs.data + offset;
-
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
         pkt->setLE<uint32_t>(*reinterpret_cast<uint32_t *>(reg_ptr));
@@ -2855,6 +2976,20 @@ DRAMCtrl::readControl(PacketPtr pkt)
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
         break;
     }
+    if(offset >= 0 && offset < 65536) {
+        int pid = offset / 8;
+        uint64_t traffic = regs.traffic[offset/8];
+        uint64_t interval = curTick() - last_read_tick[pid];
+        last_read_tick[pid] = curTick();
+        uint64_t speed = 953674L * traffic / interval;
+        // if(speed > 0)
+        //     cout << "Read traffic pid " << pid
+        //         << " value " << traffic
+        //         << " at " << curTick()/1000 << "ns " 
+        //         << " speed " << speed << "MB/s"
+        //         << endl;
+        regs.traffic[offset/8] = 0;
+    }
     pkt->makeAtomicResponse();
     return 0;
 }
@@ -2864,11 +2999,8 @@ DRAMCtrl::writeControl(PacketPtr pkt)
 {
     int offset = pkt->getAddr() - regsMap.start();
     assert(offset >= 0 && offset < 65536 * 8);
-    if (offset==24576 * 8) {
-        memset(regs.data, 0, 8 * 65536);
-        pkt->makeAtomicResponse();
-        return 0;
-    }
+    int vt_offset = offset - 65536;
+
     switch (pkt->getSize()) {
       case sizeof(uint32_t):
         *reinterpret_cast<uint32_t *>((void*)regs.data + offset) =
@@ -2877,10 +3009,17 @@ DRAMCtrl::writeControl(PacketPtr pkt)
       case sizeof(uint64_t):
         *reinterpret_cast<uint64_t *>((void*)regs.data + offset) =
             pkt->getLE<uint64_t>();
+        break;
       default:
         panic("dramRegs: unallowed access size: %d bytes\n", pkt->getSize());
         break;
     }
+    // if(vt_offset >= 0 && vt_offset < 65536) {
+    //     cout << "Write virtual time pid " << (vt_offset/8) 
+    //      << " value " << regs.virtualTime_pid[vt_offset/8] 
+    //      << " at " << curTick()/1000 << "ns" << endl;
+    // }
+    int coreId = offset - 65536 * 2;
     pkt->makeAtomicResponse();
     return 0;
 }

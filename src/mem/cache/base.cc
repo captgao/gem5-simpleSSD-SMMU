@@ -338,6 +338,7 @@ BaseCache::recvTimingReq(PacketPtr pkt)
 {
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
+
     Tick forward_time = clockEdge(forwardLatency) + pkt->headerDelay;
     Cycles lat;
     CacheBlk *blk = nullptr;
@@ -384,6 +385,7 @@ BaseCache::recvTimingReq(PacketPtr pkt)
 
         handleTimingReqHit(pkt, blk, request_time);
     } else {
+ 
         handleTimingReqMiss(pkt, blk, forward_time, request_time);
 
         ppMiss->notify(pkt);
@@ -544,7 +546,12 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         for (auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->coreId = pkt->req->coreId;
         }
-    } else if (pkt->req->masterId() >= 3 && pkt->req->masterId() < 19) {
+    }   else if(pkt->req->hasSubstreamId()) {
+        for (auto it = writebacks.begin(); it!= writebacks.end(); it++) {
+            (*it)->req->setSubStreamId(pkt->req->substreamId());
+        } 
+    } 
+    else if (pkt->req->masterId() >= 3 && pkt->req->masterId() < 19) {
         int coreId = (pkt->req->masterId() - 3) / 4;
         for (auto it = writebacks.begin(); it!= writebacks.end(); it++) {
             (*it)->req->coreId = coreId;
@@ -773,6 +780,7 @@ BaseCache::getNextQueueEntry()
 
             // @todo Note that we ignore the ready time of the conflict here
         }
+
         // No conflicts; issue write
         return wq_entry;
     } else if (miss_mshr) {
@@ -1563,6 +1571,7 @@ BaseCache::writebackBlk(CacheBlk *blk)
     if (compressor) {
         pkt->payloadDelay = compressor->getDecompressionLatency(blk);
     }
+
     return pkt;
 }
 
@@ -2351,6 +2360,7 @@ bool
 BaseCache::CpuSidePort::recvTimingReq(PacketPtr pkt)
 {
     assert(pkt->isRequest());
+
     if (cache->system->bypassCaches()) {
         // Just forward the packet if caches are disabled.
         // @todo This should really enqueue the packet rather
