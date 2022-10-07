@@ -264,7 +264,6 @@ NoncoherentXBar::recvAtomicBackdoor(PacketPtr pkt, PortID slave_port_id,
     auto master = masterPorts[master_port_id];
     Tick response_latency = backdoor ?
         master->sendAtomicBackdoor(pkt, *backdoor) : master->sendAtomic(pkt);
-    //std::cout << "Master " << master->name() << " Peer " << master->getPeer() << std::endl;
     // add the response data
     if (pkt->isResponse()) {
         pkt_size = pkt->hasData() ? pkt->getSize() : 0;

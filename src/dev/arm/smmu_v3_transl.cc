@@ -148,7 +148,6 @@ SMMUTranslationProcess::main(Yield &yield)
     // Hack:
     // The coroutine starts running as soon as it's created.
     // But we need to wait for request data esp. in atomic mode.
-    //std::cout << "SMMUTransl main" << std::endl;
     SMMUAction a;
     a.type = ACTION_INITIAL_NOP;
     a.pkt = NULL;
