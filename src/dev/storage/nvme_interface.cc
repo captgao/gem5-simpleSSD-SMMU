@@ -457,9 +457,6 @@ void NVMeInterface::dmaWrite(uint64_t addr, uint64_t size, uint8_t *buffer,
                              SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
 
 
-  // void *array[5];
-  // size_t btsize = backtrace(array,5);
-  // backtrace_symbols_fd(array, btsize, 1);
   if (size == 0) {
     SimpleSSD::warn("nvme_interface: zero-size DMA write request. Ignore.");
 
