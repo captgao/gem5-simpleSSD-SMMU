@@ -644,9 +644,8 @@ static uint64_t all_traffic = 0;
 static Tick all_traffic_last_tick = 0;
 void DRAMCtrl::print_traffic(PacketPtr pkt, int pid) {
     all_traffic += pkt->getSize();
-    if(all_traffic_last_tick + 4000000000 < curTick()) {
+    if(all_traffic_last_tick + 4000000 < curTick()) {
         uint64_t saturation = 100 * all_traffic * 1024 / ((curTick() - all_traffic_last_tick) /1000) / 2700;
-        cout << "Memory saturation " << saturation << "%" << endl;
         regs.saturation = saturation;
         all_traffic_last_tick = curTick();
         all_traffic = 0;
