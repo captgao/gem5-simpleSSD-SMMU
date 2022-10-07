@@ -41,11 +41,10 @@
 
 #include "base/bitfield.hh"
 #include "dev/arm/smmu_v3.hh"
-#include <stdio.h>
+
 void
 SMMUCommandExecProcess::main(Yield &yield)
 {
-    printf("SMMUCommandExecProcess::main \n");
     SMMUAction a;
     a.type = ACTION_INITIAL_NOP;
     a.pkt = NULL;

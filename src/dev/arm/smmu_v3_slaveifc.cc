@@ -43,7 +43,6 @@
 #include "debug/SMMUv3.hh"
 #include "dev/arm/smmu_v3.hh"
 #include "dev/arm/smmu_v3_transl.hh"
-#include <execinfo.h>
 
 SMMUv3SlaveInterface::SMMUv3SlaveInterface(
     const SMMUv3SlaveInterfaceParams *p) :
@@ -126,10 +125,6 @@ SMMUv3SlaveInterface::recvAtomic(PacketPtr pkt)
 {
     DPRINTF(SMMUv3, "[a] req from %s addr=%#x size=%#x\n",
             slavePort->getPeer(), pkt->getAddr(), pkt->getSize());
-    // std::cout << "SMMUv3SlaveInterface::recvAtomic " << slavePort->getPeer() << std::endl;
-    // void *array[10];
-    // size_t btsize = backtrace(array,10);
-    // backtrace_symbols_fd(array, btsize, 1);
     std::string proc_name = csprintf("%s.port", name());
     SMMUTranslationProcess proc(proc_name, *smmu, *this);
     proc.beginTransaction(SMMUTranslRequest::fromPacket(pkt));

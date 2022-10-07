@@ -80,7 +80,6 @@
 #include "sim/serialize.hh"
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
-#include <execinfo.h>
 
 class BasePrefetcher;
 class MSHR;

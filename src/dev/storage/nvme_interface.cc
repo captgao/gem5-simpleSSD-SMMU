@@ -19,8 +19,6 @@
 
 #include "dev/storage/nvme_interface.hh"
 
-#include <execinfo.h>
-
 #include <cstdio>
 
 #include "cpu/intr_control.hh"
@@ -317,7 +315,6 @@ Tick NVMeInterface::read(PacketPtr pkt) {
 }
 
 Tick NVMeInterface::write(PacketPtr pkt) {
-  //printf("NVMeInterface::write %lx\n", pkt->getAddr());
   if (!pController) {
     pkt->makeAtomicResponse();
 
@@ -393,7 +390,6 @@ void NVMeInterface::writeInterrupt(Addr addr, size_t size, uint8_t *data) {
 
 void NVMeInterface::dmaRead(uint64_t addr, uint64_t size, uint8_t *buffer,
                             SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
-  //printf("NVMeInterface::dmaRead %lx\n", addr);
   if (size == 0) {
     SimpleSSD::warn("nvme_interface: zero-size DMA read request. Ignore.");
 
@@ -457,9 +453,6 @@ void NVMeInterface::dmaWrite(uint64_t addr, uint64_t size, uint8_t *buffer,
                              SimpleSSD::DMAFunction &func, void *context, uint32_t sid, uint32_t ssid) {
 
 
-  // void *array[5];
-  // size_t btsize = backtrace(array,5);
-  // backtrace_symbols_fd(array, btsize, 1);
   if (size == 0) {
     SimpleSSD::warn("nvme_interface: zero-size DMA write request. Ignore.");
 

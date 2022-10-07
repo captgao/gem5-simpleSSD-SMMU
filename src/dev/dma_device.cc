@@ -53,8 +53,7 @@
 #include "mem/port_proxy.hh"
 #include "sim/clocked_object.hh"
 #include "sim/system.hh"
-#include <stdio.h>
-#include <execinfo.h>
+
 
 DmaPort::DmaPort(ClockedObject *dev, System *s,
                  uint32_t sid, uint32_t ssid)
@@ -160,12 +159,6 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
     // split into many requests and packets based on the block size,
     // i.e. cache line size
     DmaReqState *reqState = new DmaReqState(event, size, delay);
-    // if(sid != 0){
-    //     printf("DmaPort::dmaACtion sid %d ssid%d size%d\n", sid, ssid, size);
-    //     void *array[10];
-    //     size_t btsize = backtrace(array,10);
-    //     backtrace_symbols_fd(array, btsize, 1);
-    // }
     // (functionality added for Table Walker statistics)
     // We're only interested in this when there will only be one request.
     // For simplicity, we return the last request, which would also be

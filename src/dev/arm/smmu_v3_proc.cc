@@ -41,8 +41,6 @@
 
 #include "dev/arm/smmu_v3.hh"
 #include "sim/system.hh"
-#include <stdio.h>
-#include <execinfo.h>
 
 SMMUProcess::SMMUProcess(const std::string &name, SMMUv3 &_smmu) :
     coroutine(NULL),
@@ -72,7 +70,6 @@ SMMUProcess::reinit()
 void
 SMMUProcess::doRead(Yield &yield, Addr addr, void *ptr, size_t size)
 {
-    printf("SMMUProcess::doRead\n");
     doSemaphoreDown(yield, smmu.masterPortSem);
     doDelay(yield, Cycles(1)); // request - assume 1 cycle
     doSemaphoreUp(smmu.masterPortSem);
@@ -102,7 +99,6 @@ SMMUProcess::doRead(Yield &yield, Addr addr, void *ptr, size_t size)
 void
 SMMUProcess::doWrite(Yield &yield, Addr addr, const void *ptr, size_t size)
 {
-    printf("SMMUProcess::doWrite\n");
     unsigned nbeats = (size + (smmu.masterPortWidth-1)) / smmu.masterPortWidth;
 
     doSemaphoreDown(yield, smmu.masterPortSem);
@@ -209,10 +205,5 @@ SMMUProcess::run(PacketPtr pkt)
 {
     assert(coroutine != NULL);
     assert(*coroutine);
-    // void *array[10];
-    // size_t btsize = backtrace(array,10);
-    // backtrace_symbols_fd(array, btsize, 1);
-    //printf("SMMUProcess::run vt %d ssid %d\n", pkt->req->virtualTime, pkt->req->hasSubstreamId() ?
-        //pkt->req->substreamId() : -1);
     return (*coroutine)(pkt).get();
 }

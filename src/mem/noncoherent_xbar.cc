@@ -53,7 +53,7 @@
 #include "base/trace.hh"
 #include "debug/NoncoherentXBar.hh"
 #include "debug/XBar.hh"
-#include <execinfo.h>
+
 NoncoherentXBar::NoncoherentXBar(const NoncoherentXBarParams *p)
     : BaseXBar(p)
 {
@@ -249,10 +249,6 @@ NoncoherentXBar::recvAtomicBackdoor(PacketPtr pkt, PortID slave_port_id,
     DPRINTF(NoncoherentXBar, "recvAtomic: packet src %s addr 0x%x cmd %s\n",
             slavePorts[slave_port_id]->name(), pkt->getAddr(),
             pkt->cmdString());
-    //std::cout << "NonCoherentXBar::recvAtomicBackdoor " << slavePorts[slave_port_id]->name() << std::endl;
-    // void *array[10];
-    // size_t btsize = backtrace(array,10);
-    // backtrace_symbols_fd(array, btsize, 1);
     unsigned int pkt_size = pkt->hasData() ? pkt->getSize() : 0;
     unsigned int pkt_cmd = pkt->cmdToIndex();
 
@@ -268,7 +264,6 @@ NoncoherentXBar::recvAtomicBackdoor(PacketPtr pkt, PortID slave_port_id,
     auto master = masterPorts[master_port_id];
     Tick response_latency = backdoor ?
         master->sendAtomicBackdoor(pkt, *backdoor) : master->sendAtomic(pkt);
-    //std::cout << "Master " << master->name() << " Peer " << master->getPeer() << std::endl;
     // add the response data
     if (pkt->isResponse()) {
         pkt_size = pkt->hasData() ? pkt->getSize() : 0;

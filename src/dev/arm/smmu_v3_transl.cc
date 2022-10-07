@@ -39,7 +39,6 @@
 
 #include "dev/arm/smmu_v3_transl.hh"
 
-#include <execinfo.h>
 #include <unistd.h>
 
 #include <cstdio>
@@ -63,10 +62,7 @@ SMMUTranslRequest::fromPacket(PacketPtr pkt, bool ats)
     req.isPrefetch   = false;
     req.isAtsRequest = ats;
     req.pkt          = pkt;
-    // printf("SMMUTranslRequest::fromPacket: ");
-    // printf(
-    //     "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d\n",
-    //     req.addr, req.size, req.ssid, req.isWrite);
+
     return req;
 }
 
@@ -82,10 +78,7 @@ SMMUTranslRequest::prefetch(Addr addr, uint32_t sid, uint32_t ssid)
     req.isPrefetch   = true;
     req.isAtsRequest = false;
     req.pkt          = NULL;
-    printf("SMMUTranslRequest::prefetch ");
-    printf(
-        "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d\n",
-        req.addr, req.size, req.ssid, req.isWrite);
+
     return req;
 }
 
@@ -148,7 +141,6 @@ SMMUTranslationProcess::main(Yield &yield)
     // Hack:
     // The coroutine starts running as soon as it's created.
     // But we need to wait for request data esp. in atomic mode.
-    //std::cout << "SMMUTransl main" << std::endl;
     SMMUAction a;
     a.type = ACTION_INITIAL_NOP;
     a.pkt = NULL;
@@ -245,8 +237,6 @@ SMMUTranslationProcess::main(Yield &yield)
 
         completeTransaction(yield, tr);
     }
-    std::cout << "Orig Addr: " << request.addr << " Transl: "
-        << tr.addr << " Mask: " << tr.addrMask << std::endl;
 }
 
 SMMUTranslationProcess::TranslResult
@@ -264,8 +254,6 @@ SMMUTranslationProcess::bypass(Addr addr) const
 SMMUTranslationProcess::TranslResult
 SMMUTranslationProcess::smmuTranslation(Yield &yield)
 {
-    std::cout << "smmuTranslation" << std::endl;
-
     TranslResult tr;
 
     // Need SMMU credit to proceed
@@ -321,8 +309,6 @@ SMMUTranslationProcess::smmuTranslation(Yield &yield)
 
     // return SMMU credit
     doSemaphoreUp(smmu.transSem);
-    std::cout << "Orig Addr: " << request.addr << " Transl: "
-        << tr.addr << " Mask: " << tr.addrMask << std::endl;
     return tr;
 }
 
