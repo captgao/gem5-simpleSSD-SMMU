@@ -43,7 +43,6 @@
 #include "debug/SMMUv3.hh"
 #include "dev/arm/smmu_v3.hh"
 #include "dev/arm/smmu_v3_transl.hh"
-#include <execinfo.h>
 
 SMMUv3SlaveInterface::SMMUv3SlaveInterface(
     const SMMUv3SlaveInterfaceParams *p) :

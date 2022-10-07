@@ -53,7 +53,7 @@
 #include "base/trace.hh"
 #include "debug/NoncoherentXBar.hh"
 #include "debug/XBar.hh"
-#include <execinfo.h>
+
 NoncoherentXBar::NoncoherentXBar(const NoncoherentXBarParams *p)
     : BaseXBar(p)
 {

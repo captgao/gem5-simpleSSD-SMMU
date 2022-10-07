@@ -39,7 +39,6 @@
 
 #include "dev/arm/smmu_v3_transl.hh"
 
-#include <execinfo.h>
 #include <unistd.h>
 
 #include <cstdio>
@@ -63,10 +62,6 @@ SMMUTranslRequest::fromPacket(PacketPtr pkt, bool ats)
     req.isPrefetch   = false;
     req.isAtsRequest = ats;
     req.pkt          = pkt;
-    // printf("SMMUTranslRequest::fromPacket: ");
-    // printf(
-    //     "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d\n",
-    //     req.addr, req.size, req.ssid, req.isWrite);
     return req;
 }
 
@@ -82,10 +77,6 @@ SMMUTranslRequest::prefetch(Addr addr, uint32_t sid, uint32_t ssid)
     req.isPrefetch   = true;
     req.isAtsRequest = false;
     req.pkt          = NULL;
-    printf("SMMUTranslRequest::prefetch ");
-    printf(
-        "addr=%lx,size = %d,SubstreamID = %d,isWrite=%d\n",
-        req.addr, req.size, req.ssid, req.isWrite);
     return req;
 }
 

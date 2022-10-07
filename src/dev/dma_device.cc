@@ -53,8 +53,7 @@
 #include "mem/port_proxy.hh"
 #include "sim/clocked_object.hh"
 #include "sim/system.hh"
-#include <stdio.h>
-#include <execinfo.h>
+
 
 DmaPort::DmaPort(ClockedObject *dev, System *s,
                  uint32_t sid, uint32_t ssid)

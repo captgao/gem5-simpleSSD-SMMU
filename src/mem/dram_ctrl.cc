@@ -47,8 +47,6 @@
 
 #include "mem/dram_ctrl.hh"
 
-#include <execinfo.h>
-
 #include <cstdio>
 
 #include "base/bitfield.hh"

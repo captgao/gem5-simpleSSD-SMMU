@@ -46,7 +46,6 @@
 
 #include "base/trace.hh"
 
-#include <execinfo.h>
 /* The request protocol. */
 
 Tick

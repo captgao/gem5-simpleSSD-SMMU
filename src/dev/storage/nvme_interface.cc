@@ -19,8 +19,6 @@
 
 #include "dev/storage/nvme_interface.hh"
 
-#include <execinfo.h>
-
 #include <cstdio>
 
 #include "cpu/intr_control.hh"
