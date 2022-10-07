@@ -62,6 +62,7 @@ SMMUTranslRequest::fromPacket(PacketPtr pkt, bool ats)
     req.isPrefetch   = false;
     req.isAtsRequest = ats;
     req.pkt          = pkt;
+
     return req;
 }
 
@@ -77,6 +78,7 @@ SMMUTranslRequest::prefetch(Addr addr, uint32_t sid, uint32_t ssid)
     req.isPrefetch   = true;
     req.isAtsRequest = false;
     req.pkt          = NULL;
+
     return req;
 }
 
@@ -235,8 +237,6 @@ SMMUTranslationProcess::main(Yield &yield)
 
         completeTransaction(yield, tr);
     }
-    std::cout << "Orig Addr: " << request.addr << " Transl: "
-        << tr.addr << " Mask: " << tr.addrMask << std::endl;
 }
 
 SMMUTranslationProcess::TranslResult
@@ -254,8 +254,6 @@ SMMUTranslationProcess::bypass(Addr addr) const
 SMMUTranslationProcess::TranslResult
 SMMUTranslationProcess::smmuTranslation(Yield &yield)
 {
-    std::cout << "smmuTranslation" << std::endl;
-
     TranslResult tr;
 
     // Need SMMU credit to proceed
@@ -311,8 +309,6 @@ SMMUTranslationProcess::smmuTranslation(Yield &yield)
 
     // return SMMU credit
     doSemaphoreUp(smmu.transSem);
-    std::cout << "Orig Addr: " << request.addr << " Transl: "
-        << tr.addr << " Mask: " << tr.addrMask << std::endl;
     return tr;
 }
 
