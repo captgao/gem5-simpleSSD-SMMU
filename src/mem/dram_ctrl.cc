@@ -705,6 +705,23 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
     }
     prevArrival = curTick();
 
+    int pid = -1;
+    if (pkt->req->hasSubstreamId() && pkt->req->substreamId() != 0) {
+        pid = pkt->req->substreamId() % 8192;
+    }
+    else if(pkt->req->coreId != -1) {
+        pid = regs.pid_coreId[pkt->req->coreId] % 8192;
+    }
+    else {
+        int masterId = pkt->req->masterId();
+        if(masterId >= 0 && masterId < 64) {
+            unaccounted_traffic[masterId] += pkt->req->getSize();
+            if(unaccounted_traffic[masterId] % 1048576 == 0)
+                cout << "Master " << masterId << " " 
+                << system()->getMasterName(masterId) << " unaccounted traffic "
+                    << unaccounted_traffic[masterId]/1048576 << " MB" << endl;
+        }
+    }
 
     // Find out how many dram packets a pkt translates to
     // If the burst size is equal or larger than the pkt size, then a pkt
@@ -730,7 +747,8 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
             stats.numWrRetry++;
             return false;
         } else {
-            regs.traffic[pid] += pkt->getSize();
+            if (pid >= 0)
+                regs.traffic[pid] += pkt->getSize();
             print_traffic(pkt, pid);
             addToWriteQueue(pkt, dram_pkt_count);
             stats.writeReqs++;
@@ -746,7 +764,8 @@ DRAMCtrl::recvTimingReq(PacketPtr pkt)
             stats.numRdRetry++;
             return false;
         } else {
-            regs.traffic[pid] += pkt->getSize();
+            if (pid >= 0)
+                regs.traffic[pid] += pkt->getSize();
             print_traffic(pkt, pid);
             addToReadQueue(pkt, dram_pkt_count);
             stats.readReqs++;
