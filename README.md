@@ -20,7 +20,9 @@
 		# This will now use the scons installed in a python 2.7 virtualenv.
 		scons build/X86/gem5.opt -j8
 		```
-4. You can switch to branch ``original`` and build to run gem5 without DRFQS.
+4. Build gem5 following https://docs.simplessd.org/en/v2.0.12/instructions/start.html
+
+5. You can switch to branch ``original`` and build to run gem5 without DRFQS.
 
 # Compilation of Linux Kernel
 1. Clone repository https://github.com/captgao/linux-bfs-drfq
